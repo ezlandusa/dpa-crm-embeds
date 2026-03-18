@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropertyAid Partners - Updates Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e5e5e5;
+            border-top: 3px solid #0176d3;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .error-banner {
+            display: none;
+            background-color: #fdf0ec;
+            border: 1px solid #e76d68;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            color: #c23030;
+            font-size: 13px;
+        }
+
+        .error-banner.show {
+            display: block;
+        }
+
+        .success-toast {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #04844b;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .success-toast.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e5e5e5;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .tab-button {
+            padding: 12px 0;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .tab-button.active {
+            color: #0176d3;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #0176d3;
+        }
+
+        .tab-button:hover {
+            color: #333;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Last Conversation Tab */
+        .conversation-header {
+            background-color: #f7f7f7;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .conversation-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .conversation-contact {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .conversation-details {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .detail-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            background-color: #e6f2ff;
+            color: #0176d3;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .detail-chip.status-no-answer {
+            background-color: #fce4e4;
+            color: #c23030;
+        }
+
+        .detail-chip.status-interested {
+            background-color: #d4edda;
+            color: #04844b;
+        }
+
+        .key-points {
+            background-color: #f7f7f7;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .key-points-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .key-point-item {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 8px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .key-point-item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #0176d3;
+            font-weight: bold;
+        }
+
+        .key-point-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Quick Note Input */
+        .note-input-section {
+            margin-top: 16px;
+        }
+
+        .note-input-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .note-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.2s ease;
+        }
+
+        .note-textarea:focus {
+            outline: none;
+            border-color: #0176d3;
+            box-shadow: 0 0 0 2px rgba(1, 118, 211, 0.1);
+        }
+
+        .note-button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .save-button {
+            padding: 8px 16px;
+            background-color: #0176d3;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .save-button:hover {
+            background-color: #015ba3;
+        }
+
+        .cancel-button {
+            padding: 8px 16px;
+            background-color: #e6e6e6;
+            color: #333;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cancel-button:hover {
+            background-color: #d9d9d9;
+        }
+
+        /* Timeline */
+        .timeline-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background-color: #f7f7f7;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .timeline-group {
+            margin-bottom: 24px;
+        }
+
+        .timeline-month {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .timeline-entry {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #0176d3;
+            position: absolute;
+            left: 0;
+            top: 4px;
+            border: 3px solid white;
+            box-shadow: 0 0 0 1px #e5e5e5;
+        }
+
+        .timeline-dot.no-answer {
+            background-color: #c23030;
+        }
+
+        .timeline-dot.inactive {
+            background-color: #f59e0b;
+        }
+
+        .timeline-dot.update {
+            background-color: #666;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background-color: #f7f7f7;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .timeline-contact {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .timeline-status {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background-color: #e6f2ff;
+            color: #0176d3;
+            margin-bottom: 8px;
+            margin-right: 8px;
+        }
+
+        .timeline-status.no-answer {
+            background-color: #fce4e4;
+            color: #c23030;
+        }
+
+        .timeline-status.inactive {
+            background-color: #fff3e0;
+            color: #f59e0b;
+        }
+
+        .timeline-status.update {
+            background-color: #e2e3e5;
+            color: #666;
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            color: #999;
+            display: inline-block;
+        }
+
+        .timeline-notes {
+            font-size: 13px;
+            color: #333;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .latest-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #04844b;
+            background-color: #d4edda;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 4px;
+        }
+
+        /* Deal Notes */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .note-card {
+            padding: 12px;
+            background-color: #f7f7f7;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+        }
+
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .note-author {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .note-text {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .no-data {
+            padding: 32px 16px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .conversation-details {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            h1 {
+                font-size: 16px;
+            }
+
+            .timeline-stats {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading updates...</div>
+    </div>
+
+    <div class="success-toast" id="successToast">
+        Note saved successfully
+    </div>
+
+    <div class="container">
+        <div class="error-banner" id="errorBanner"></div>
+
+        <div class="page-header">
+            <h1 id="itemName">Loading...</h1>
+            <div class="subtitle" id="subtitle">Loading item details...</div>
+        </div>
+
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="switchTab('lastConversation')">Last Conversation</button>
+            <button class="tab-button" onclick="switchTab('updateHistory')">Update History</button>
+            <button class="tab-button" onclick="switchTab('dealNotes')">Deal Notes</button>
+        </div>
+
+        <!-- Last Conversation Tab -->
+        <div id="lastConversation" class="tab-content active">
+            <div class="conversation-header">
+                <div class="conversation-date" id="convDate">Loading...</div>
+                <div class="conversation-contact" id="convContact">Loading...</div>
+                <div class="conversation-details" id="convDetails">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="key-points">
+                <div class="key-points-title">Key Conversation Points</div>
+                <div id="keyPoints">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="note-input-section">
+                <label class="note-input-label">Add Quick Note</label>
+                <textarea class="note-textarea" id="quickNote" placeholder="Type a note about this conversation..."></textarea>
+                <div class="note-button-group">
+                    <button class="save-button" onclick="saveQuickNote()">Save Note</button>
+                    <button class="cancel-button" onclick="document.getElementById('quickNote').value = ''">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update History Tab -->
+        <div id="updateHistory" class="tab-content">
+            <div class="timeline-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Total Notes</div>
+                    <div class="stat-value" id="totalNotes">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Last Update</div>
+                    <div class="stat-value" id="lastUpdate" style="font-size: 12px;">—</div>
+                </div>
+            </div>
+
+            <div id="timelineContainer">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Deal Notes Tab -->
+        <div id="dealNotes" class="tab-content">
+            <div class="note-input-section">
+                <label class="note-input-label">Add Deal Note</label>
+                <textarea class="note-textarea" id="dealNote" placeholder="Type a deal note..."></textarea>
+                <div class="note-button-group">
+                    <button class="save-button" onclick="saveDealNote()">Save Note</button>
+                    <button class="cancel-button" onclick="document.getElementById('dealNote').value = ''">Clear</button>
+                </div>
+            </div>
+
+            <div id="notesListContainer" style="margin-top: 24px;">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const LOAD_WEBHOOK_URL = "YOUR_LOAD_WEBHOOK_URL_HERE";
+        const SAVE_WEBHOOK_URL = "YOUR_SAVE_WEBHOOK_URL_HERE";
+
+        // Demo fallback data
+        const DEMO_DATA = {
+            "item_id": "123",
+            "board_id": "456",
+            "contact_name": "Andrew Fischer Hurt",
+            "conv_date": "2025-04-14",
+            "lead_status": "No Answer",
+            "relationship": "Son",
+            "ownership": "Heir",
+            "key_points": "Confirmed voicemail reached|Number was active but no pickup|Need to try alternate numbers for other heirs",
+            "timeline": [
+                {
+                    "contact": "Andrew Fischer Hurt",
+                    "status": "No Answer",
+                    "date": "2025-03-14",
+                    "notes": ["NO #s WORKED — Only 1st WAS ACTIVE"]
+                },
+                {
+                    "contact": "Silas Albrecht Hurt",
+                    "status": "Inactive",
+                    "date": "2025-02-24",
+                    "notes": ["All 3 numbers are inactive"]
+                },
+                {
+                    "contact": "Brycen Boudreaux",
+                    "status": "Update",
+                    "date": "2025-02-21",
+                    "notes": ["803 Henderson St, Houston, TX 77007"]
+                }
+            ],
+            "highlights": []
+        };
+
+        let currentData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                item_id: params.get('item_id') || '123',
+                board_id: params.get('board_id') || '456'
+            };
+        }
+
+        async function loadData() {
+            const spinner = document.getElementById('loadingSpinner');
+            const errorBanner = document.getElementById('errorBanner');
+
+            spinner.classList.add('show');
+            errorBanner.classList.remove('show');
+
+            try {
+                const params = getUrlParams();
+                const response = await fetch(LOAD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+
+                if (!response.ok) throw new Error('Failed to load data');
+                currentData = await response.json();
+            } catch (error) {
+                console.log('Using demo data:', error.message);
+                currentData = { ...DEMO_DATA };
+                showError('Using demo data. Webhook not configured.');
+            }
+
+            spinner.classList.remove('show');
+            renderPage();
+        }
+
+        function renderPage() {
+            if (!currentData) return;
+
+            document.getElementById('itemName').textContent = currentData.contact_name || 'Item';
+            document.getElementById('subtitle').textContent = `ID: ${currentData.item_id} | Board: ${currentData.board_id}`;
+
+            renderLastConversation();
+            renderUpdateHistory();
+            renderDealNotes();
+        }
+
+        function renderLastConversation() {
+            const convDate = new Date(currentData.conv_date);
+            const relativeTime = getRelativeTime(convDate);
+
+            document.getElementById('convDate').textContent = `Last meaningful contact ${relativeTime}`;
+            document.getElementById('convContact').textContent = currentData.contact_name;
+
+            const detailsContainer = document.getElementById('convDetails');
+            detailsContainer.innerHTML = '';
+
+            const statusClass = currentData.lead_status === 'No Answer' ? 'status-no-answer' : 'status-interested';
+            const chips = [
+                { text: currentData.lead_status, class: statusClass },
+                { text: `Relationship: ${currentData.relationship}`, class: '' },
+                { text: currentData.ownership, class: '' }
+            ];
+
+            chips.forEach(chip => {
+                const elem = document.createElement('div');
+                elem.className = `detail-chip ${chip.class}`;
+                elem.textContent = chip.text;
+                detailsContainer.appendChild(elem);
+            });
+
+            // Key points
+            const keyPointsContainer = document.getElementById('keyPoints');
+            keyPointsContainer.innerHTML = '';
+
+            if (currentData.key_points) {
+                const points = currentData.key_points.split('|');
+                points.forEach(point => {
+                    if (point.trim()) {
+                        const item = document.createElement('div');
+                        item.className = 'key-point-item';
+                        item.textContent = point.trim();
+                        keyPointsContainer.appendChild(item);
+                    }
+                });
+            }
+        }
+
+        function renderUpdateHistory() {
+            const timelineContainer = document.getElementById('timelineContainer');
+            timelineContainer.innerHTML = '';
+
+            if (!currentData.timeline || currentData.timeline.length === 0) {
+                timelineContainer.innerHTML = '<div class="no-data">No update history</div>';
+                return;
+            }
+
+            // Stats
+            document.getElementById('totalNotes').textContent = currentData.timeline.length;
+            const lastDate = new Date(currentData.timeline[0].date);
+            document.getElementById('lastUpdate').textContent = getRelativeTime(lastDate);
+
+            // Group by month
+            const grouped = {};
+            currentData.timeline.forEach(entry => {
+                const date = new Date(entry.date);
+                const monthKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                if (!grouped[monthKey]) grouped[monthKey] = [];
+                grouped[monthKey].push(entry);
+            });
+
+            Object.entries(grouped).forEach(([month, entries]) => {
+                const group = document.createElement('div');
+                group.className = 'timeline-group';
+
+                const monthLabel = document.createElement('div');
+                monthLabel.className = 'timeline-month';
+                monthLabel.textContent = month;
+                group.appendChild(monthLabel);
+
+                entries.forEach((entry, idx) => {
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = 'timeline-entry';
+
+                    const dotClass = entry.status === 'No Answer' ? 'no-answer' : (entry.status === 'Inactive' ? 'inactive' : 'update');
+                    const dot = document.createElement('div');
+                    dot.className = `timeline-dot ${dotClass}`;
+                    entryDiv.appendChild(dot);
+
+                    const content = document.createElement('div');
+                    content.className = 'timeline-content';
+
+                    const contactLine = document.createElement('div');
+                    contactLine.className = 'timeline-contact';
+                    const contactText = document.createElement('span');
+                    contactText.textContent = entry.contact;
+                    contactLine.appendChild(contactText);
+
+                    if (idx === 0) {
+                        const tag = document.createElement('span');
+                        tag.className = 'latest-tag';
+                        tag.textContent = 'LATEST';
+                        contactLine.appendChild(tag);
+                    }
+
+                    content.appendChild(contactLine);
+
+                    const statusElem = document.createElement('div');
+                    statusElem.className = `timeline-status ${dotClass}`;
+                    statusElem.textContent = entry.status;
+
+                    const dateElem = document.createElement('div');
+                    dateElem.className = 'timeline-date';
+                    dateElem.textContent = new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                    const statusLine = document.createElement('div');
+                    statusLine.appendChild(statusElem);
+                    statusLine.appendChild(dateElem);
+                    content.appendChild(statusLine);
+
+                    if (entry.notes && entry.notes.length > 0) {
+                        const notesDiv = document.createElement('div');
+                        notesDiv.className = 'timeline-notes';
+                        notesDiv.textContent = entry.notes.join(' | ');
+                        content.appendChild(notesDiv);
+                    }
+
+                    entryDiv.appendChild(content);
+                    group.appendChild(entryDiv);
+                });
+
+                timelineContainer.appendChild(group);
+            });
+        }
+
+        function renderDealNotes() {
+            const container = document.getElementById('notesListContainer');
+            container.innerHTML = '<div class="no-data">No deal notes yet. Add one above to get started.</div>';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function saveQuickNote() {
+            const noteText = document.getElementById('quickNote').value.trim();
+            if (!noteText) {
+                showError('Please enter a note');
+                return;
+            }
+
+            await saveNote('quick', noteText);
+            document.getElementById('quickNote').value = '';
+        }
+
+        async function saveDealNote() {
+            const noteText = document.getElementById('dealNote').value.trim();
+            if (!noteText) {
+                showError('Please enter a note');
+                return;
+            }
+
+            await saveNote('deal', noteText);
+            document.getElementById('dealNote').value = '';
+        }
+
+        async function saveNote(type, text) {
+            const spinner = document.getElementById('loadingSpinner');
+            spinner.classList.add('show');
+
+            try {
+                const response = await fetch(SAVE_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        item_id: currentData.item_id,
+                        board_id: currentData.board_id,
+                        note_type: type,
+                        text: text
+                    })
+                });
+
+                if (response.ok) {
+                    showSuccess();
+                } else {
+                    showError('Failed to save note');
+                }
+            } catch (error) {
+                showError('Error saving note: ' + error.message);
+            }
+
+            spinner.classList.remove('show');
+        }
+
+        function getRelativeTime(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function showError(message) {
+            const banner = document.getElementById('errorBanner');
+            banner.textContent = message;
+            banner.classList.add('show');
+        }
+
+        function showSuccess() {
+            const toast = document.getElementById('successToast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

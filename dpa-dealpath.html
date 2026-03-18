@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropertyAid Partners - Deal Path</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            padding: 20px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 16px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .flag-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        .flag-deceased {
+            background-color: #f3e8e6;
+            color: #c23030;
+        }
+
+        .flag-tax-suit {
+            background-color: #fef6e8;
+            color: #f59e0b;
+        }
+
+        .flag-heirs {
+            background-color: #e6f2ff;
+            color: #0176d3;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e5e5e5;
+            border-top: 3px solid #0176d3;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #333;
+            margin-top: 12px;
+        }
+
+        .error-banner {
+            display: none;
+            background-color: #fdf0ec;
+            border: 1px solid #e76d68;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            color: #c23030;
+            font-size: 13px;
+        }
+
+        .error-banner.show {
+            display: block;
+        }
+
+        .success-toast {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #04844b;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .success-toast.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .pipeline-section {
+            margin-bottom: 32px;
+        }
+
+        .pipeline-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .pipeline-container {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            overflow-x: auto;
+            padding: 12px 0;
+        }
+
+        .stage {
+            display: flex;
+            align-items: center;
+            position: relative;
+            min-width: auto;
+            flex-shrink: 0;
+        }
+
+        .stage-button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .stage-button.completed {
+            background-color: #a6e7db;
+            color: #0a3622;
+        }
+
+        .stage-button.active {
+            background-color: #17345b;
+            color: white;
+        }
+
+        .stage-button.future {
+            background-color: #e6e6e6;
+            color: #333;
+        }
+
+        .stage-button.dead {
+            background-color: #f3e8e6;
+            color: #c23030;
+            margin-left: 24px;
+        }
+
+        .stage-button:hover:not(.dead) {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+
+        .chevron {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            background: linear-gradient(to right, transparent 48%, #e6e6e6 48%, #e6e6e6 52%, transparent 52%);
+            position: relative;
+            margin: 0 -8px;
+            z-index: 1;
+        }
+
+        .stage:last-child .chevron {
+            display: none;
+        }
+
+        .stage.dead {
+            margin-left: auto;
+        }
+
+        .stage.dead .chevron {
+            display: none;
+        }
+
+        .metrics-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .metric-card {
+            padding: 16px;
+            background-color: #f7f7f7;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .metric-subtext {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .bot-score-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bot-score-tier {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .bot-score-tier.hot {
+            background-color: #fce4e4;
+            color: #c23030;
+        }
+
+        .bot-score-tier.qualified {
+            background-color: #fff3e0;
+            color: #f59e0b;
+        }
+
+        .bot-score-tier.monitor {
+            background-color: #e6f2ff;
+            color: #0176d3;
+        }
+
+        .bot-score-tier.walk {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .percentage {
+            font-size: 14px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .metrics-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pipeline-container {
+                overflow-x: scroll;
+            }
+
+            h1 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading deal information...</div>
+    </div>
+
+    <div class="success-toast" id="successToast">
+        Stage updated successfully
+    </div>
+
+    <div class="container">
+        <div class="error-banner" id="errorBanner"></div>
+
+        <div class="page-header">
+            <div class="title-row">
+                <h1 id="itemName">Loading...</h1>
+                <span class="flag-badge flag-deceased" id="deceasedFlag" style="display: none;">
+                    ✓ Deceased
+                </span>
+                <span class="flag-badge flag-tax-suit" id="taxSuitFlag" style="display: none;">
+                    ✓ Tax Suit
+                </span>
+                <span class="flag-badge flag-heirs" id="heirsFlag" style="display: none;">
+                    Heirs: <span id="heirCount">0</span>
+                </span>
+            </div>
+            <div class="subtitle" id="subtitle">Loading item details...</div>
+        </div>
+
+        <div class="pipeline-section">
+            <div class="pipeline-label">Pipeline Stage</div>
+            <div class="pipeline-container" id="pipelineContainer">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="metrics-section" id="metricsSection">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const LOAD_WEBHOOK_URL = "YOUR_LOAD_WEBHOOK_URL_HERE";
+        const SAVE_WEBHOOK_URL = "YOUR_SAVE_WEBHOOK_URL_HERE";
+
+        // Demo fallback data
+        const DEMO_DATA = {
+            "item_id": "123",
+            "board_id": "456",
+            "name": "HARRIS COUNTY vs. HURT",
+            "stage": "Dial",
+            "appraised_value": 544519,
+            "tax_balance": 127857.99,
+            "value_to_tax_ratio": 23.48,
+            "gross_spread": 416661,
+            "bot_score": 87,
+            "lead_created": "2025-01-29",
+            "deceased_flag": true,
+            "active_tax_suit": true,
+            "heir_count": 3
+        };
+
+        const PIPELINE_STAGES = [
+            "New Lead",
+            "Research",
+            "Qualified",
+            "Ready to Dial",
+            "Dial",
+            "Negotiating",
+            "Under Contract",
+            "Dead"
+        ];
+
+        let currentData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                item_id: params.get('item_id') || '123',
+                board_id: params.get('board_id') || '456'
+            };
+        }
+
+        async function loadData() {
+            const spinner = document.getElementById('loadingSpinner');
+            const errorBanner = document.getElementById('errorBanner');
+
+            spinner.classList.add('show');
+            errorBanner.classList.remove('show');
+
+            try {
+                const params = getUrlParams();
+                const response = await fetch(LOAD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+
+                if (!response.ok) throw new Error('Failed to load data');
+                currentData = await response.json();
+            } catch (error) {
+                console.log('Using demo data:', error.message);
+                currentData = { ...DEMO_DATA };
+                showError('Using demo data. Webhook not configured.');
+            }
+
+            spinner.classList.remove('show');
+            renderPage();
+        }
+
+        function renderPage() {
+            if (!currentData) return;
+
+            // Title and flags
+            document.getElementById('itemName').textContent = currentData.name;
+            document.getElementById('subtitle').textContent = `ID: ${currentData.item_id} | Board: ${currentData.board_id}`;
+
+            // Flags
+            if (currentData.deceased_flag) {
+                document.getElementById('deceasedFlag').style.display = 'inline-flex';
+            }
+            if (currentData.active_tax_suit) {
+                document.getElementById('taxSuitFlag').style.display = 'inline-flex';
+            }
+            if (currentData.heir_count > 0) {
+                document.getElementById('heirCount').textContent = currentData.heir_count;
+                document.getElementById('heirsFlag').style.display = 'inline-flex';
+            }
+
+            // Pipeline stages
+            renderPipelineStages();
+
+            // Metrics
+            renderMetrics();
+        }
+
+        function renderPipelineStages() {
+            const container = document.getElementById('pipelineContainer');
+            container.innerHTML = '';
+
+            const currentStageIndex = PIPELINE_STAGES.findIndex(s =>
+                s.toLowerCase() === (currentData.stage || '').toLowerCase()
+            );
+            const deadIndex = PIPELINE_STAGES.indexOf('Dead');
+
+            PIPELINE_STAGES.forEach((stage, index) => {
+                if (stage === 'Dead') return; // Handle separately
+
+                let status = 'future';
+                if (index < currentStageIndex) status = 'completed';
+                if (index === currentStageIndex) status = 'active';
+
+                const stageDiv = document.createElement('div');
+                stageDiv.className = 'stage';
+
+                const button = document.createElement('button');
+                button.className = `stage-button ${status}`;
+                button.textContent = stage;
+                button.onclick = () => updateStage(stage);
+
+                stageDiv.appendChild(button);
+
+                if (index < PIPELINE_STAGES.length - 2) {
+                    const chevron = document.createElement('div');
+                    chevron.className = 'chevron';
+                    stageDiv.appendChild(chevron);
+                }
+
+                container.appendChild(stageDiv);
+            });
+
+            // Dead stage
+            const deadDiv = document.createElement('div');
+            deadDiv.className = 'stage dead';
+            const deadButton = document.createElement('button');
+            deadButton.className = `stage-button ${currentStageIndex === deadIndex ? 'active' : 'dead'}`;
+            deadButton.textContent = 'Dead';
+            deadButton.onclick = () => updateStage('Dead');
+            deadDiv.appendChild(deadButton);
+            container.appendChild(deadDiv);
+        }
+
+        function renderMetrics() {
+            const metricsSection = document.getElementById('metricsSection');
+            metricsSection.innerHTML = '';
+
+            const metrics = [
+                {
+                    label: 'Appraised Value',
+                    value: formatCurrency(currentData.appraised_value)
+                },
+                {
+                    label: 'Tax Balance Due',
+                    value: formatCurrency(currentData.tax_balance)
+                },
+                {
+                    label: 'Value to Tax Ratio',
+                    value: `${currentData.value_to_tax_ratio}%`,
+                    isPercentage: true
+                },
+                {
+                    label: 'Gross Spread',
+                    value: formatCurrency(currentData.gross_spread)
+                },
+                {
+                    label: 'Bot Score',
+                    custom: true,
+                    html: renderBotScore(currentData.bot_score)
+                },
+                {
+                    label: 'Lead Age',
+                    value: calculateLeadAge(currentData.lead_created),
+                    subtext: 'days in CRM'
+                }
+            ];
+
+            metrics.forEach(metric => {
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+
+                const label = document.createElement('div');
+                label.className = 'metric-label';
+                label.textContent = metric.label;
+                card.appendChild(label);
+
+                if (metric.custom) {
+                    card.innerHTML += metric.html;
+                } else {
+                    const value = document.createElement('div');
+                    value.className = 'metric-value';
+                    value.textContent = metric.value;
+                    card.appendChild(value);
+
+                    if (metric.subtext) {
+                        const subtext = document.createElement('div');
+                        subtext.className = 'metric-subtext';
+                        subtext.textContent = metric.subtext;
+                        card.appendChild(subtext);
+                    }
+                }
+
+                metricsSection.appendChild(card);
+            });
+        }
+
+        function renderBotScore(score) {
+            let tier = 'walk';
+            let tierText = 'Walk';
+
+            if (score >= 85) {
+                tier = 'hot';
+                tierText = 'Hot';
+            } else if (score >= 60) {
+                tier = 'qualified';
+                tierText = 'Qualified';
+            } else if (score >= 31) {
+                tier = 'monitor';
+                tierText = 'Monitor';
+            }
+
+            return `
+                <div class="bot-score-container">
+                    <div class="metric-value">${score}</div>
+                    <div class="bot-score-tier ${tier}">${tierText}</div>
+                </div>
+            `;
+        }
+
+        async function updateStage(newStage) {
+            const spinner = document.getElementById('loadingSpinner');
+            spinner.classList.add('show');
+
+            try {
+                const response = await fetch(SAVE_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        item_id: currentData.item_id,
+                        board_id: currentData.board_id,
+                        stage: newStage
+                    })
+                });
+
+                if (response.ok) {
+                    currentData.stage = newStage;
+                    renderPipelineStages();
+                    showSuccess();
+                } else {
+                    showError('Failed to update stage');
+                }
+            } catch (error) {
+                showError('Error updating stage: ' + error.message);
+            }
+
+            spinner.classList.remove('show');
+        }
+
+        function calculateLeadAge(createdDate) {
+            if (!createdDate) return '0';
+            const created = new Date(createdDate);
+            const today = new Date();
+            const days = Math.floor((today - created) / (1000 * 60 * 60 * 24));
+            return days.toString();
+        }
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined) return '$0';
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function showError(message) {
+            const banner = document.getElementById('errorBanner');
+            banner.textContent = message;
+            banner.classList.add('show');
+        }
+
+        function showSuccess() {
+            const toast = document.getElementById('successToast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
