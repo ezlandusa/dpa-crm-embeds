@@ -32,12 +32,39 @@
     }
     .dashboard.visible { display: flex; }
 
-    .panel { width: 100%; border: none; flex-shrink: 0; }
-    .panel-dealpath { height: 220px; }
-    .panel-recordpage { height: 750px; }
-    .panel-updates { height: 500px; }
+    /* Deal Path: full width on top */
+    .panel-dealpath {
+      width: 100%;
+      height: 200px;
+      flex-shrink: 0;
+    }
+
+    /* Bottom row: Record Page left, Updates right */
+    .bottom-row {
+      display: flex;
+      flex: 1;
+      min-height: 600px;
+    }
+    .panel-recordpage {
+      flex: 7;
+      min-width: 0;
+      height: 100%;
+    }
+    .panel-updates {
+      flex: 3;
+      min-width: 0;
+      height: 100%;
+      border-left: 1px solid #e0e0e0;
+    }
 
     iframe { width: 100%; height: 100%; border: none; }
+
+    /* Stack on narrow screens */
+    @media (max-width: 900px) {
+      .bottom-row { flex-direction: column; }
+      .panel-recordpage { min-height: 600px; }
+      .panel-updates { min-height: 450px; border-left: none; border-top: 1px solid #e0e0e0; }
+    }
   </style>
 </head>
 <body>
@@ -47,14 +74,16 @@
   </div>
 
   <div class="dashboard" id="dashboard">
-    <div class="panel panel-dealpath">
+    <div class="panel-dealpath">
       <iframe id="frame-dealpath" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
     </div>
-    <div class="panel panel-recordpage">
-      <iframe id="frame-recordpage" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
-    </div>
-    <div class="panel panel-updates">
-      <iframe id="frame-updates" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+    <div class="bottom-row">
+      <div class="panel-recordpage">
+        <iframe id="frame-recordpage" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+      </div>
+      <div class="panel-updates">
+        <iframe id="frame-updates" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+      </div>
     </div>
   </div>
 
@@ -93,7 +122,6 @@
 
     // --- Resolve IDs: Monday SDK first, then URL params ---
     (function init() {
-      // 1. Check URL params
       let boardId = getUrlParam("boardId") || getUrlParam("board_id") || "";
       let itemId  = getUrlParam("itemId")  || getUrlParam("item_id")  || getUrlParam("pulseId") || "";
 
@@ -103,11 +131,9 @@
         return;
       }
 
-      // 2. Try Monday SDK
       if (window.mondaySdk) {
         try {
           const monday = window.mondaySdk();
-
           const timeout = setTimeout(() => {
             showError("Could not get item context from Monday.com. Make sure this view is added to an item.");
           }, 5000);
