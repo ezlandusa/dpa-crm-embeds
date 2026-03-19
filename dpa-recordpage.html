@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lightning-Style Record Page</title>
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
 
   <style>
     :root{
@@ -2167,75 +2166,53 @@
       el.textContent = `${total} Heirs Total · ${contacted} Contacted · ${unrelated} Unrelated Contacts`;
     }
     
-    /* ── Monday.com SDK Context Resolution ── */
-    const _resolvedIds = { boardId: null, pulseId: null };
+    // Extract board ID from current URL for Monday.com links
+    function extractBoardIdFromUrl() {
+      const urlParams = window.location.search;
+      if (!urlParams || urlParams === '?') return '';
+      
+      const cleaned = urlParams.substring(1).trim();
+      
+      // Path format: 18395630812/pulses/11004380444
+      if (cleaned.includes('/pulses/')) {
+        const parts = cleaned.split('/pulses/');
+        return parts[0].trim();
+      }
+      
+      // Query param format
+      const params = new URLSearchParams(cleaned);
+      return params.get('boardId') || params.get('board_id') || '';
+    }
 
-    function _extractIdsFromUrlOnly() {
+    // Extract board ID from URL for Monday.com links
+    function extractIdsFromUrl() {
+      const fullUrl = window.location.href;
+      console.log('Full URL:', fullUrl);
+
       let urlParams = window.location.search;
-      if (!urlParams || urlParams === '?') return { boardId: null, pulseId: null };
+      console.log('Query string:', urlParams);
+
+      if (!urlParams || urlParams === '?') {
+        console.error('No query parameters found in URL');
+        return { boardId: null, pulseId: null };
+      }
 
       urlParams = urlParams.substring(1).trim();
+      console.log('Cleaned params:', urlParams);
 
       if (urlParams.includes('/pulses/')) {
         const parts = urlParams.split('/pulses/');
-        return { boardId: parts[0].trim(), pulseId: parts[1] ? parts[1].trim() : null };
+        const boardId = parts[0].trim();
+        const pulseId = parts[1] ? parts[1].trim() : null;
+        console.log('Extracted from path format - Board ID:', boardId, 'Pulse ID:', pulseId);
+        return { boardId, pulseId };
       }
 
       const params = new URLSearchParams(urlParams);
-      return {
-        boardId: params.get('boardId') || params.get('board_id') || null,
-        pulseId: params.get('pulseId') || params.get('pulse_id') || params.get('itemId') || params.get('item_id') || null
-      };
-    }
-
-    function _initMondayContext(){
-      return new Promise((resolve) => {
-        // 1. Try URL params first
-        const fromUrl = _extractIdsFromUrlOnly();
-        _resolvedIds.boardId = fromUrl.boardId;
-        _resolvedIds.pulseId = fromUrl.pulseId;
-
-        if(_resolvedIds.pulseId){
-          console.log("[RecordPage] IDs from URL params:", _resolvedIds);
-          resolve(_resolvedIds);
-          return;
-        }
-
-        // 2. Try Monday.com SDK
-        if(window.mondaySdk){
-          try {
-            const monday = window.mondaySdk();
-            const timeout = setTimeout(() => {
-              console.warn("[RecordPage] Monday SDK context timeout");
-              resolve(_resolvedIds);
-            }, 3000);
-
-            monday.listen("context", (res) => {
-              clearTimeout(timeout);
-              const ctx = res.data;
-              _resolvedIds.boardId = _resolvedIds.boardId || String(ctx.boardId || ctx.boardIds?.[0] || "");
-              _resolvedIds.pulseId = _resolvedIds.pulseId || String(ctx.itemId || ctx.pulseId || "");
-              console.log("[RecordPage] IDs from Monday SDK:", _resolvedIds);
-              resolve(_resolvedIds);
-            });
-          } catch(e){
-            console.warn("[RecordPage] Monday SDK init failed:", e);
-            resolve(_resolvedIds);
-          }
-        } else {
-          console.warn("[RecordPage] No Monday SDK available");
-          resolve(_resolvedIds);
-        }
-      });
-    }
-
-    // Extract board ID from current URL for Monday.com links
-    function extractBoardIdFromUrl() {
-      return _resolvedIds.boardId || '';
-    }
-
-    function extractIdsFromUrl() {
-      return { boardId: _resolvedIds.boardId, pulseId: _resolvedIds.pulseId };
+      const boardId = params.get('boardId') || params.get('board_id');
+      const pulseId = params.get('pulseId') || params.get('pulse_id') || params.get('itemId') || params.get('item_id');
+      console.log('Extracted from query params - Board ID:', boardId, 'Pulse ID:', pulseId);
+      return { boardId, pulseId };
     }
 
     // Fetch data from Make.com webhook
@@ -2416,7 +2393,8 @@
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        let data = await response.json();
+        if(Array.isArray(data)) data = data[0] || {};
         console.log('Received data from Make.com:', data);
 
         window.RecordPage.applyData(data);
@@ -2430,11 +2408,9 @@
       }
     }
 
-    // Fetch data on page load — wait for Monday.com context first
+    // Fetch data on page load
     window.addEventListener('DOMContentLoaded', () => {
-      _initMondayContext().then(() => {
-        fetchDataFromMake();
-      });
+      fetchDataFromMake();
     });
 
     // Utils
@@ -2519,23 +2495,28 @@
         // TODO: Send to Make.com webhook to update Monday.com subitem
         const webhookURL = 'https://tphllc.app.n8n.cloud/webhook/dpa-updates-save';
         
-        const { boardId, pulseId } = extractIdsFromUrl();
         const payload = {
           contactName: currentNoteContact.name,
           contactIndex: currentNoteContactIndex,
           note: noteText,
           timestamp: new Date().toISOString(),
-          boardId: boardId || '',
-          pulseId: pulseId || ''
+          boardId: 'BOARD_ID', // Extract from URL
+          pulseId: 'PULSE_ID'  // Extract from URL
         };
 
-        const response = await fetch(webhookURL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        // Uncomment when webhook is ready:
+        // const response = await fetch(webhookURL, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(payload)
+        // });
+        // 
+        // if (!response.ok) throw new Error('Failed to save note');
 
-        if (!response.ok) throw new Error('Failed to save note');
+        console.log('Note to save:', payload);
+        
+        // Simulate success
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         alert(`Note saved for ${currentNoteContact.name}!`);
         closeNoteModal();

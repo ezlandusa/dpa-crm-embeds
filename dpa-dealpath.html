@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Deal Path</title>
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <style>
     :root{
       /* Modern, clean UI sans stack (Salesforce-ish without relying on SF Sans being installed) */
@@ -834,63 +833,8 @@ to{ transform: scale(1); opacity: 1;} }
       ]}
     };
 
-    /* ── Monday.com SDK Context Resolution ── */
-    const _resolvedIds = { boardId: null, itemId: null, userId: null };
-
-    function _getUrlParam(name){
-      return new URLSearchParams(window.location.search).get(name);
-    }
-
-    // Try Monday SDK context, fall back to URL params
-    function _initMondayContext(){
-      return new Promise((resolve) => {
-        // 1. Try URL params first (instant)
-        _resolvedIds.boardId = _getUrlParam("boardId") || _getUrlParam("board_id");
-        _resolvedIds.itemId  = _getUrlParam("itemId")  || _getUrlParam("item_id") || _getUrlParam("pulseId");
-        _resolvedIds.userId  = _getUrlParam("userId");
-
-        // If we already have IDs from URL, resolve immediately
-        if(_resolvedIds.itemId){
-          console.log("[DealPath] IDs from URL params:", _resolvedIds);
-          resolve(_resolvedIds);
-          return;
-        }
-
-        // 2. Try Monday.com SDK
-        if(window.mondaySdk){
-          try {
-            const monday = window.mondaySdk();
-            const timeout = setTimeout(() => {
-              console.warn("[DealPath] Monday SDK context timeout — no IDs available");
-              resolve(_resolvedIds);
-            }, 3000);
-
-            monday.listen("context", (res) => {
-              clearTimeout(timeout);
-              const ctx = res.data;
-              _resolvedIds.boardId = _resolvedIds.boardId || String(ctx.boardId || ctx.boardIds?.[0] || "");
-              _resolvedIds.itemId  = _resolvedIds.itemId  || String(ctx.itemId || ctx.pulseId || "");
-              _resolvedIds.userId  = _resolvedIds.userId  || String(ctx.user?.id || "");
-              console.log("[DealPath] IDs from Monday SDK:", _resolvedIds);
-              resolve(_resolvedIds);
-            });
-          } catch(e){
-            console.warn("[DealPath] Monday SDK init failed:", e);
-            resolve(_resolvedIds);
-          }
-        } else {
-          console.warn("[DealPath] No Monday SDK available");
-          resolve(_resolvedIds);
-        }
-      });
-    }
-
     function getParam(name){
-      // Check resolved Monday context first, then fall back to URL
-      if(name === "itemId"  || name === "item_id")  return _resolvedIds.itemId  || _getUrlParam(name);
-      if(name === "boardId" || name === "board_id")  return _resolvedIds.boardId || _getUrlParam(name);
-      if(name === "userId")                          return _resolvedIds.userId  || _getUrlParam(name);
-      return _getUrlParam(name);
+      return new URLSearchParams(window.location.search).get(name);
     }
 
     function escapeHtml(str){
@@ -1305,7 +1249,8 @@ function showLoading(on, text){
         });
         if(!res.ok) throw new Error("GET fields failed: " + res.status);
 
-        let data = await res.json();         if(Array.isArray(data)) data = data[0] || {};
+        let data = await res.json();
+        if(Array.isArray(data)) data = data[0] || {};
 
         applyFieldsFromData(data);
         writeCache(itemId, boardId, data);
@@ -1439,11 +1384,7 @@ function showLoading(on, text){
       if(el) setText(id, el.textContent);
     });
     setStalledReasonUI();
-
-    // Wait for Monday.com context resolution before loading data
-    _initMondayContext().then(() => {
-      loadStageFromMonday();
-    });
+    loadStageFromMonday();
   </script>
 </body>
 </html>

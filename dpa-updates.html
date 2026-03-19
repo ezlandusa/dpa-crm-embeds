@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deal Summary Embed</title>
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
 
   <style>
     :root{
@@ -471,57 +470,6 @@
     const LOAD_WEBHOOK_URL = "https://tphllc.app.n8n.cloud/webhook/dpa-updates-load";
     const MAKE_WEBHOOK_URL = "https://tphllc.app.n8n.cloud/webhook/dpa-updates-save";
 
-    /* ── Monday.com SDK Context Resolution ── */
-    const _resolvedIds = { board_id: null, item_id: null };
-
-    function _initMondayContext(){
-      return new Promise((resolve) => {
-        const params = new URLSearchParams(window.location.search);
-        _resolvedIds.item_id  = params.get('item_id') || params.get('pulseId') || params.get('itemId') || null;
-        _resolvedIds.board_id = params.get('board_id') || params.get('boardId') || '';
-
-        // Try URL path patterns
-        if(!_resolvedIds.item_id){
-          const raw = window.location.search.replace('?', '');
-          let m;
-          if((m = raw.match(/(\d+)\/pulses\/(\d+)/)))  { _resolvedIds.board_id=m[1]; _resolvedIds.item_id=m[2]; }
-          if(!_resolvedIds.item_id && (m = raw.match(/(\d+)\/(\d+)/))) { _resolvedIds.board_id=m[1]; _resolvedIds.item_id=m[2]; }
-        }
-
-        if(_resolvedIds.item_id){
-          console.log("[Updates] IDs from URL:", _resolvedIds);
-          resolve(_resolvedIds);
-          return;
-        }
-
-        // Try Monday.com SDK
-        if(window.mondaySdk){
-          try {
-            const monday = window.mondaySdk();
-            const timeout = setTimeout(() => {
-              console.warn("[Updates] Monday SDK context timeout");
-              resolve(_resolvedIds);
-            }, 3000);
-
-            monday.listen("context", (res) => {
-              clearTimeout(timeout);
-              const ctx = res.data;
-              _resolvedIds.board_id = _resolvedIds.board_id || String(ctx.boardId || ctx.boardIds?.[0] || "");
-              _resolvedIds.item_id  = _resolvedIds.item_id  || String(ctx.itemId || ctx.pulseId || "");
-              console.log("[Updates] IDs from Monday SDK:", _resolvedIds);
-              resolve(_resolvedIds);
-            });
-          } catch(e){
-            console.warn("[Updates] Monday SDK init failed:", e);
-            resolve(_resolvedIds);
-          }
-        } else {
-          console.warn("[Updates] No Monday SDK available");
-          resolve(_resolvedIds);
-        }
-      });
-    }
-
 
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
@@ -672,8 +620,14 @@
     }
 
     async function loadDealData() {
-      const item_id  = _resolvedIds.item_id;
-      const board_id = _resolvedIds.board_id;
+      const raw    = window.location.search.replace('?', '');
+      const params = new URLSearchParams(window.location.search);
+      let item_id  = params.get('item_id') || params.get('pulseId') || null;
+      let board_id = params.get('board_id') || params.get('boardId') || '';
+
+      if (!item_id) { const m = raw.match(/(\d+)\/pulses\/(\d+)/);  if (m) { board_id=m[1]; item_id=m[2]; } }
+      if (!item_id) { const m = raw.match(/(\d+)\/item_id=(\d+)/);  if (m) { board_id=m[1]; item_id=m[2]; } }
+      if (!item_id) { const m = raw.match(/(\d+)\/(\d+)/);          if (m) { board_id=m[1]; item_id=m[2]; } }
 
       if (!item_id) { src = {}; renderAll(); return; }
 
@@ -684,6 +638,7 @@
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         src = await res.json();
+        if(Array.isArray(src)) src = src[0] || {};
         renderAll();
       } catch(err) {
         src = {}; renderAll();
@@ -730,13 +685,10 @@
       });
     });
 
-    // Wait for Monday.com context resolution before loading data
-    _initMondayContext().then(() => {
-      loadDealData().finally(() => {
-        const ov = document.getElementById('loadingOverlay');
-        ov.classList.add('hidden');
-        setTimeout(() => ov.remove(), 400);
-      });
+    loadDealData().finally(() => {
+      const ov = document.getElementById('loadingOverlay');
+      ov.classList.add('hidden');
+      setTimeout(() => ov.remove(), 400);
     });
   </script>
 </body>
