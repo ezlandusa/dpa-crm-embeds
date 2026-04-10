@@ -1710,6 +1710,15 @@
           if (node) node.textContent = formatValue(value);
         }
 
+        // Phase E1: Override condition with numeric condition_multiplier (0-100 score)
+        if (payload.condition_multiplier !== undefined && payload.condition_multiplier !== null) {
+          const condNode = document.querySelector('.field[data-field="condition"] .value-text');
+          if (condNode) {
+            const val = String(payload.condition_multiplier).replace(/[^0-9]/g, "");
+            condNode.textContent = val ? val + "/100" : "\u2014";
+          }
+        }
+
         // Top snapshot mapping (header fields)
         for (const [key, value] of Object.entries(payload)) {
           const snap = document.querySelector(`[data-snapshot="true"][data-field="${cssEscape(key)}"]`);
@@ -2174,7 +2183,10 @@
       "owner_status": ["Deceased Confirmed", "Deceased Likely", "Alive", "Unknown"],
       "heir_count": ["0", "1", "2", "3", "4", "5", "6", "7", "8+"],
       "occupancy": ["Occupied", "Vacant", "Unknown"],
-      "county": ["Montgomery", "Brazoria", "Grimes", "Harris", "San Jacinto", "Fort Bend", "Walker", "Galveston", "Waller", "Bexar", "Fort Worth", "Liberty"]
+      "county": ["Montgomery", "Brazoria", "Grimes", "Harris", "San Jacinto", "Fort Bend", "Walker", "Galveston", "Waller", "Bexar", "Fort Worth", "Liberty"],
+      "title_issue": ["Working on it", "Done", "Stuck"],
+      "deed_status": ["Not Started", "In Progress", "Pending Recording", "Recorded", "Filed"],
+      "will_status": ["Working on it", "Done", "Stuck"]
     };
 
     // Column ID map — data-field → Monday.com column ID
@@ -2187,7 +2199,7 @@
       "total_equity":       "formula_mm1kmp9k",
       "deed_status":        "dropdown_mkxn2crm",
       "will_status":        "dropdown_mkxn8zvw",
-      "title_issue":        "dropdown_3_mkm2q90p",
+      "title_issue":        "color_mm20a4nd",
       "tax_account":        "dup__of_reference__",
       "county":             "dup__of_marketing",
       "case_number":        "text_mkm83gq2",
@@ -2289,7 +2301,23 @@
         let inputEl;
         const options = FIELD_OPTIONS[fieldKey];
 
-        if (options) {
+        // Phase E1: Numeric fields get number input with constraints
+        const NUMERIC_FIELDS = {
+          "condition": { min: 0, max: 100, step: 1, suffix: "/100" }
+        };
+
+        if (NUMERIC_FIELDS[fieldKey]) {
+          // Number input for numeric fields (e.g., condition 0-100)
+          const cfg = NUMERIC_FIELDS[fieldKey];
+          inputEl = document.createElement("input");
+          inputEl.type = "number";
+          inputEl.className = "inline-input";
+          inputEl.min = cfg.min;
+          inputEl.max = cfg.max;
+          inputEl.step = cfg.step;
+          inputEl.value = oldValue.replace(/[^0-9]/g, "") || "";
+          inputEl.placeholder = cfg.min + "\u2013" + cfg.max;
+        } else if (options) {
           // Dropdown selector for status/dropdown fields
           inputEl = document.createElement("select");
           inputEl.className = "inline-input inline-select";
@@ -2321,13 +2349,25 @@
         const commit = async () => {
           if (committed) return;
           committed = true;
-          const newValue = (inputEl.value || "").trim() || "—";
-          valueText.textContent = newValue;
+          let newValue = (inputEl.value || "").trim() || "\u2014";
+
+          // Phase E1: Clamp and format numeric fields
+          const numCfg = NUMERIC_FIELDS[fieldKey];
+          if (numCfg && newValue !== "\u2014") {
+            let num = parseInt(newValue, 10);
+            if (isNaN(num)) num = 0;
+            num = Math.max(numCfg.min, Math.min(numCfg.max, num));
+            newValue = String(num);
+            valueText.textContent = num + (numCfg.suffix || "");
+          } else {
+            valueText.textContent = newValue;
+          }
+
           left.remove();
           valueText.style.display = "";
           pencil.style.display = "";
-          if (newValue !== (oldValue || "—")) {
-            await saveToMonday(fieldKey, newValue === "—" ? "" : newValue);
+          if (newValue !== (oldValue.replace(/[^0-9]/g, "") || "\u2014")) {
+            await saveToMonday(fieldKey, newValue === "\u2014" ? "" : newValue);
             showSaveToast("success");
           }
         };
