@@ -1360,20 +1360,12 @@
             </div>
 
 
-            <!-- Update Activity (collapsible, closed by default) -->
-            <div class="inline-toggle" id="characteristicsToggle" data-open="false">
-              <div class="toggle-head" role="button" tabindex="0" aria-expanded="false" aria-controls="characteristicsBody">
-                <div class="toggle-left">
-                  <button class="toggle-btn" type="button" aria-label="Toggle Update Activity">
-                    <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
-                  <div class="toggle-title">Update Activity</div>
-                </div>
+            <!-- Update Activity (always open) -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>Update Activity</h3></div>
               </div>
-
-              <div class="toggle-body" id="characteristicsBody">
+              <div>
                 <div class="field-grid">
                   <div>
                     <div class="field" data-field="next_action_step">
@@ -1888,9 +1880,6 @@
       }
     };
 
-    // Characteristics dropdown
-    const characteristics = document.getElementById("characteristicsToggle");
-
     function toneDotClass(tone){
       if (tone === "good") return "dot good";
       if (tone === "warn") return "dot warn";
@@ -1903,17 +1892,6 @@
       const mutedClass = (statusObj.tone === "muted") ? "td-muted" : "";
       return `<span class="status ${mutedClass}"><span class="${dot}"></span>${escapeHtml(text)}</span>`;
     }
-
-    // Now setup event listeners
-    const toggleCharacteristics = () => {
-      const isOpen = characteristics.getAttribute("data-open") === "true";
-      characteristics.setAttribute("data-open", String(!isOpen));
-      characteristics.querySelector(".toggle-head").setAttribute("aria-expanded", String(!isOpen));
-    };
-    characteristics.querySelector(".toggle-head").addEventListener("click", toggleCharacteristics);
-    characteristics.querySelector(".toggle-head").addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCharacteristics(); }
-    });
 
     // Tabs
     const tabs = Array.from(document.querySelectorAll(".tab"));
