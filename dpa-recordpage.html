@@ -1416,45 +1416,6 @@
                         </span>
                       </div>
                     </div>
-
-                    <div class="field" data-field="cca_status">
-                      <div class="label">CCA Status</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="field" data-field="cca_started_date">
-                      <div class="label">CCA Started Date</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="field" data-field="hail_mary_method">
-                      <div class="label">Hail Mary Method</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1747,6 +1708,15 @@
         for (const [key, value] of Object.entries(payload)) {
           const node = document.querySelector(`.field[data-field="${cssEscape(key)}"] .value-text`);
           if (node) node.textContent = formatValue(value);
+        }
+
+        // Phase E1: Override condition with numeric condition_multiplier (0-100 score)
+        if (payload.condition_multiplier !== undefined && payload.condition_multiplier !== null) {
+          const condNode = document.querySelector('.field[data-field="condition"] .value-text');
+          if (condNode) {
+            const val = String(payload.condition_multiplier).replace(/[^0-9]/g, "");
+            condNode.textContent = val ? val + "/100" : "—";
+          }
         }
 
         // Top snapshot mapping (header fields)
@@ -2211,62 +2181,186 @@
       "tier": ["HOT", "QUALIFIED", "MONITOR", "AUTO-WALK"],
       "death_confirmed": ["Confirmed (2+)", "Likely (1 source)", "Unconfirmed", "Not Found", "Not Researched"],
       "owner_status": ["Deceased Confirmed", "Deceased Likely", "Alive", "Unknown"],
-      "cca_status": ["CCA 1", "CCA 2", "CCA 3", "CCA 4", "CCA 5", "CCA 6", "CCA 7", "CCA 8", "CCA 9", "CCA 10", "EXHAUSTED"],
       "heir_count": ["0", "1", "2", "3", "4", "5", "6", "7", "8+"],
       "occupancy": ["Occupied", "Vacant", "Unknown"],
-      "county": ["Montgomery", "Brazoria", "Grimes", "Harris", "San Jacinto", "Fort Bend", "Walker", "Galveston", "Waller", "Bexar", "Fort Worth", "Liberty"]
+      "county": ["Montgomery", "Brazoria", "Grimes", "Harris", "San Jacinto", "Fort Bend", "Walker", "Galveston", "Waller", "Bexar", "Fort Worth", "Liberty"],
+      "title_issue": ["No Issues", "Tax Lien(s)", "Heirship Affidavit Needed", "Probate Required", "Judgment Lien", "HOA Lien", "Clouded Title", "Missing/Defective Deed", "Unreleased Mortgage", "Lis Pendens", "Multiple Ownership Claims", "Boundary/Survey Dispute"],
+      "deed_status": ["Not Started", "In Progress", "Pending Recording", "Recorded", "Filed"],
+      "will_status": ["Working on it", "Done", "Stuck"]
     };
 
-    // Column ID map — data-field → Monday.com column ID
-    const COLUMN_ID_MAP = {
-      // Property Details
-      "lead_type":          "color_mkv18m98",
-      "tax_status":         "color_mm1cmrqj",
-      "occupancy":          "color_mm1ksrpz",
-      "days_of_inactivity": "numeric_mm1kr9s1",
-      "total_equity":       "formula_mm1kmp9k",
-      "deed_status":        "dropdown_mkxn2crm",
-      "will_status":        "dropdown_mkxn8zvw",
-      "title_issue":        "dropdown_3_mkm2q90p",
-      "tax_account":        "dup__of_reference__",
-      "county":             "dup__of_marketing",
-      "case_number":        "text_mkm83gq2",
-      "death_confirmed":    "color_mm1jxhen",
-      "owner_status":       "color_mm1jrrxs",
-      "last_payment_date":  "date_mm1jt744",
-      // Deal Metrics
-      "condition":          "numeric_mm1jftsp",
-      "appraisal":          "dup__of_retail_value",
-      "land_value":         "numeric_mm1jasdz",
-      "improvement_value":  "numeric_mm1jjkyx",
-      "years_delinquent":   "numeric_mm1j3x4r",
-      "tier":               "color_mm1jh3br",
-      "heir_count":         "dropdown_mm1jqw9x",
-      "taxes_owed":         "numbers3__1",
-      // Update Activity
-      "next_action_step":   "color",
-      "stalled_reason":     "long_text_mkp4xwq7",
-      "follow_up_date":     "date_mm1cwn6k",
-      "cca_status":         "color_mm1z1pg9",
-      "cca_started_date":   "date_mm1vca18",
-      "hail_mary_method":   "text_mm1vj1ev",
-      "pipeline_stage":     "color_mm1c7yw1",
-      // Research
-      "obituary_link":      "link_mkm1203y",
-      "ancestry_link":      "link_mkn89tj9",
-      "zillow_link":        "link_mkktcawe",
-      "tax_assessor_link":  "link",
-      "google_maps_link":   "link_mm1dwgsf",
-      "deceased_owner":     "text_mkkmry1b",
-      // Activity
-      "last_contacted":     "date_Mjj4pmmI",
-      "activity_notes":     "text_activity_notes",
+    // Per-board column ID maps — data-field → Monday.com column ID
+    // Each board has different column IDs for the same logical fields
+    const BOARD_COLUMN_MAPS = {
+      // Prospecting
+      "7886033430": {
+        "lead_type":          "color_mkv18m98",
+        "tax_status":         "color_mm1reh6a",
+        "occupancy":          "color_mm1ksrpz",
+        "days_of_inactivity": "numeric_mm1kr9s1",
+        "total_equity":       "formula_mm1kmp9k",
+        "deed_status":        "color_mm1rmn3j",
+        "will_status":        "color_mm20hvce",
+        "title_issue":        "color_mm20a4nd",
+        "tax_account":        "dup__of_reference__",
+        "county":             "dup__of_marketing",
+        "case_number":        "text_mkm83gq2",
+        "death_confirmed":    "color_mm1jxhen",
+        "owner_status":       "color_mm1jrrxs",
+        "last_payment_date":  "date_mm1jt744",
+        "condition":          "numeric_mm1jftsp",
+        "appraisal":          "dup__of_retail_value",
+        "land_value":         "numeric_mm1jasdz",
+        "improvement_value":  "numeric_mm1jjkyx",
+        "years_delinquent":   "numeric_mm1j3x4r",
+        "tier":               "color_mm1jh3br",
+        "heir_count":         "dropdown_mm1jqw9x",
+        "taxes_owed":         "numbers3__1",
+        "next_action_step":   "color",
+        "stalled_reason":     "long_text_mkp4xwq7",
+        "follow_up_date":     "date_mm29hs98",
+        "last_contact_date":  "date_mm1cwn6k",
+        "pipeline_stage":     "color_mm1c7yw1",
+        "obituary_link":      "link_mm1rbthv",
+        "ancestry_link":      "link_mm1rwdx0",
+        "zillow_link":        "link_mm20kj8a",
+        "tax_assessor_link":  "link_mm20wtt1",
+        "google_maps_link":   "link_mm1dwgsf",
+        "deceased_owner":     "text_mkkmry1b",
+        "cad_link":           "link",
+        "lead_score":         "numeric_mm1jm0bs",
+        "cca_status":         "color_mm1z1pg9",
+      },
+      // Opportunities
+      "6464951893": {
+        "lead_type":          "status9",
+        "tax_status":         "color_mm1skrwg",
+        "occupancy":          "color_mm1qvnnz",
+        "days_of_inactivity": "numeric_mm1saxde",
+        "total_equity":       "formula_mm1qtwx8",
+        "deed_status":        "color_mm1sk67n",
+        "will_status":        "color_mm20b3jc",
+        "title_issue":        "color_mm20aeaq",
+        "tax_account":        "dup__of_reference__",
+        "county":             "dup__of_marketing",
+        "case_number":        "text_mm1qk9kq",
+        "death_confirmed":    "color_mm1q6hsh",
+        "owner_status":       "color_mm1qkbts",
+        "last_payment_date":  "date_mm1qhaqw",
+        "condition":          "numeric_mm1qghyp",
+        "appraisal":          "dup__of_retail_value",
+        "land_value":         "numeric_mm1qcz3t",
+        "improvement_value":  "numeric_mm1qprkq",
+        "years_delinquent":   "numeric_mm1cezma",
+        "tier":               "color_mm1qx8ek",
+        "heir_count":         "dropdown_mm1q2gyd",
+        "taxes_owed":         "numbers_mkmq5ysb",
+        "next_action_step":   "color",
+        "stalled_reason":     "long_text_mm1q42dn",
+        "follow_up_date":     "date_mm298sa1",
+        "last_contact_date":  "date_mm1caahc",
+        "pipeline_stage":     "color_mm1cs822",
+        "obituary_link":      "link_mm1sx5s4",
+        "ancestry_link":      "link_mm1syqyv",
+        "zillow_link":        "link_mm207q7d",
+        "tax_assessor_link":  "link_mm20vw55",
+        "google_maps_link":   "link_mm1q1130",
+        "deceased_owner":     "text_mm1c988s",
+        "cad_link":           "link_mm1qbg0g",
+        "lead_score":         "numeric_mm1q9846",
+        "cca_status":         "color_mm20amw8",
+      },
+      // Transaction Coordinating
+      "9593389151": {
+        "lead_type":          "status",
+        "tax_status":         "color_mm1sh1rh",
+        "occupancy":          "color_mm1qwzb",
+        "days_of_inactivity": "numeric_mm1sj42x",
+        "total_equity":       "formula_mm1qatya",
+        "deed_status":        "color_mm1ss1n",
+        "will_status":        "color_mm20asz2",
+        "title_issue":        "color_mm20awkk",
+        "tax_account":        "numbers50",
+        "county":             "status3",
+        "case_number":        "text_mkt3r19y",
+        "death_confirmed":    "color_mm1qk394",
+        "owner_status":       "color_mm1qe6x9",
+        "last_payment_date":  "date_mm1q66x1",
+        "condition":          "numeric_mm1qmrst",
+        "appraisal":          "numeric_mkt3ggk0",
+        "land_value":         "numeric_mm1q5fh2",
+        "improvement_value":  "numeric_mm1qpcf",
+        "years_delinquent":   "numeric_mm1sm35t",
+        "tier":               "color_mm1q98ep",
+        "heir_count":         "dropdown_mm1qe8rb",
+        "taxes_owed":         "numeric_mkt3wk84",
+        "next_action_step":   "dup__of_marketing",
+        "stalled_reason":     "long_text_mm1qxmca",
+        "follow_up_date":     "date_mm29gy0p",
+        "last_contact_date":  "date_mm1qfy1n",
+        "pipeline_stage":     "color_mm1qxm1d",
+        "obituary_link":      "link_mm1s6adg",
+        "ancestry_link":      "link_mm1speyz",
+        "zillow_link":        "link_mm20vgwp",
+        "tax_assessor_link":  "link_mm2047km",
+        "google_maps_link":   "link_mm1qx5np",
+        "deceased_owner":     "text_mm1q1fn1",
+        "cad_link":           "link_mm1qhr25",
+        "lead_score":         "numeric_mm1qaww3",
+        "cca_status":         "color_mm20z1rs",
+      },
+      // Closed Deals
+      "9587157658": {
+        "lead_type":          "marketing",
+        "tax_status":         "color_mm1sz9ty",
+        "occupancy":          "color_mm1qjcn4",
+        "days_of_inactivity": "numeric_mm1sw8n6",
+        "total_equity":       "formula_mm1qg16j",
+        "deed_status":        "color_mm1sgqb9",
+        "will_status":        "color_mm20w4kf",
+        "title_issue":        "color_mm20781w",
+        "tax_account":        "text",
+        "county":             "county",
+        "case_number":        "text_mm1qrstz",
+        "death_confirmed":    "color_mm1qggf0",
+        "owner_status":       "color_mm1qdr26",
+        "last_payment_date":  "date_mm1qp463",
+        "condition":          "numeric_mm1qgwxg",
+        "appraisal":          "numeric_mm1qkhq3",
+        "land_value":         "numeric_mm1q64yn",
+        "improvement_value":  "numeric_mm1qh0bn",
+        "years_delinquent":   "numeric_mm1qqgcy",
+        "tier":               "color_mm1q8ghz",
+        "heir_count":         "dropdown_mm1qeh77",
+        "taxes_owed":         "numeric_mm1q66tj",
+        "next_action_step":   "color_mm20qhrk",
+        "stalled_reason":     "long_text_mm1qf3de",
+        "follow_up_date":     "date_mm29b22p",
+        "last_contact_date":  "date_mm1q1fc4",
+        "pipeline_stage":     "color_mm1qp354",
+        "obituary_link":      "link_mm1s9rv7",
+        "ancestry_link":      "link_mm1sjkgn",
+        "zillow_link":        "link_mm20nj5k",
+        "tax_assessor_link":  "link_mm20dm1y",
+        "google_maps_link":   "link_mm1qghzx",
+        "deceased_owner":     "text_mm1qppz9",
+        "cad_link":           "link",
+        "lead_score":         "numeric_mm1q8cd7",
+        "cca_status":         "color_mm20mtjb",
+      },
     };
+
+    // Get the correct column ID for a field based on current board
+    function getColumnId(fieldKey) {
+      const { boardId } = extractIdsFromUrl();
+      const boardMap = BOARD_COLUMN_MAPS[boardId] || BOARD_COLUMN_MAPS["7886033430"];
+      return boardMap[fieldKey] || null;
+    }
 
     const SAVE_WEBHOOK = "https://tphllc.app.n8n.cloud/webhook/dpa-recordpage-save";
 
     async function saveToMonday(fieldKey, newValue) {
-      const columnId = COLUMN_ID_MAP[fieldKey];
+      const columnId = getColumnId(fieldKey);
       if (!columnId) {
         console.warn(`No column ID mapped for field: ${fieldKey}`);
         return;
@@ -2332,7 +2426,23 @@
         let inputEl;
         const options = FIELD_OPTIONS[fieldKey];
 
-        if (options) {
+        // Phase E1: Numeric fields get number input with constraints
+        const NUMERIC_FIELDS = {
+          "condition": { min: 0, max: 100, step: 1, suffix: "/100" }
+        };
+
+        if (NUMERIC_FIELDS[fieldKey]) {
+          // Number input for numeric fields (e.g., condition 0-100)
+          const cfg = NUMERIC_FIELDS[fieldKey];
+          inputEl = document.createElement("input");
+          inputEl.type = "number";
+          inputEl.className = "inline-input";
+          inputEl.min = cfg.min;
+          inputEl.max = cfg.max;
+          inputEl.step = cfg.step;
+          inputEl.value = oldValue.replace(/[^0-9]/g, "") || "";
+          inputEl.placeholder = `${cfg.min}–${cfg.max}`;
+        } else if (options) {
           // Dropdown selector for status/dropdown fields
           inputEl = document.createElement("select");
           inputEl.className = "inline-input inline-select";
@@ -2364,12 +2474,24 @@
         const commit = async () => {
           if (committed) return;
           committed = true;
-          const newValue = (inputEl.value || "").trim() || "—";
-          valueText.textContent = newValue;
+          let newValue = (inputEl.value || "").trim() || "—";
+
+          // Phase E1: Clamp and format numeric fields
+          const numCfg = NUMERIC_FIELDS[fieldKey];
+          if (numCfg && newValue !== "—") {
+            let num = parseInt(newValue, 10);
+            if (isNaN(num)) num = 0;
+            num = Math.max(numCfg.min, Math.min(numCfg.max, num));
+            newValue = String(num);
+            valueText.textContent = num + (numCfg.suffix || "");
+          } else {
+            valueText.textContent = newValue;
+          }
+
           left.remove();
           valueText.style.display = "";
           pencil.style.display = "";
-          if (newValue !== (oldValue || "—")) {
+          if (newValue !== (oldValue.replace(/[^0-9]/g, "") || "—")) {
             await saveToMonday(fieldKey, newValue === "—" ? "" : newValue);
             showSaveToast("success");
           }
