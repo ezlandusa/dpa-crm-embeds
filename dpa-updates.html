@@ -669,9 +669,9 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         if (body.error) throw new Error(body.error);
         showSuccess('Note saved to Monday.com ✓');
-        dealHighlights.unshift({ date: new Date().toISOString(), author: 'You', text });
-        renderHighlights();
         textarea.value = '';
+        // Re-fetch from Monday so the timeline + key points show the new note
+        await loadDealData();
       } catch (err) {
         console.error('[saveNote] save failed', err);
         showSuccess('Save failed: ' + err.message);
