@@ -2200,7 +2200,7 @@
       "heir_count": ["0", "1", "2", "3", "4", "5", "6", "7", "8+"],
       "occupancy": ["Occupied", "Vacant", "Unknown"],
       "county": ["Montgomery", "Brazoria", "Grimes", "Harris", "San Jacinto", "Fort Bend", "Walker", "Galveston", "Waller", "Bexar", "Fort Worth", "Liberty"],
-      "title_issue": ["No Issues", "Tax Lien(s)", "Heirship Affidavit Needed", "Probate Required", "Judgment Lien", "HOA Lien", "Clouded Title", "Missing/Defective Deed", "Unreleased Mortgage", "Lis Pendens", "Multiple Ownership Claims", "Boundary/Survey Dispute"],
+      "title_issue": ["Tax Lien(s)", "No Issues", "Heirship Affidavit Needed", "Probate Required", "Judgment Lien", "HOA Lien", "Clouded Title", "Missing/Defective Deed", "Unreleased Mortgage", "Lis Pendens", "Multiple Ownership Claims", "Boundary/Survey Dispute", "Missing/Unreachable Owner", "Divorce/Community Property", "Tax Sale Pending"],
       "deed_status": ["Not Started", "In Progress", "Pending Recording", "Recorded", "Filed"],
       "will_status": ["Working on it", "Done", "Stuck"],
       "cca_status": ["CCA 1", "CCA 2", "CCA 3", "CCA 4", "CCA 5", "CCA 6", "CCA 7", "CCA 8", "CCA 9", "CCA 10", "EXHAUSTED"],
@@ -2219,7 +2219,7 @@
         "total_equity":       "formula_mm21rw15",
         "deed_status":        "color_mm1rmn3j",
         "will_status":        "color_mm20hvce",
-        "title_issue":        "color_mm20a4nd",
+        "title_issue":        "dropdown_mm2fvxbb",
         "tax_account":        "dup__of_reference__",
         "county":             "dup__of_marketing",
         "case_number":        "text_mkm83gq2",
@@ -2454,6 +2454,9 @@
 
         // Phase E1: Numeric fields get number input with constraints
         const NUMERIC_FIELDS = {};
+        // Fields that should render as multi-select (checkbox list). These map
+        // to Monday dropdown-type columns, which accept {labels:[...]} on save.
+        const MULTI_SELECT_FIELDS = new Set(["title_issue"]);
 
         if (NUMERIC_FIELDS[fieldKey]) {
           // Number input for numeric fields (e.g., condition 0-100)
@@ -2466,6 +2469,50 @@
           inputEl.step = cfg.step;
           inputEl.value = oldValue.replace(/[^0-9]/g, "") || "";
           inputEl.placeholder = `${cfg.min}–${cfg.max}`;
+        } else if (MULTI_SELECT_FIELDS.has(fieldKey) && options) {
+          // Multi-select: render checkboxes in a chip layout + Done/Cancel
+          inputEl = document.createElement("div");
+          inputEl.className = "multi-select-wrap";
+          inputEl.style.cssText = "display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--surface,#fff);border:1px solid var(--line,#e5e7eb);border-radius:8px;max-width:100%;";
+          const chipsRow = document.createElement("div");
+          chipsRow.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
+          const currentlySelected = new Set(
+            String(oldValue || "").split(/,\s*/).map(s => s.trim()).filter(Boolean)
+          );
+          options.forEach(opt => {
+            const tag = document.createElement("label");
+            const isOn = currentlySelected.has(opt);
+            tag.dataset.value = opt;
+            tag.style.cssText = "display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:14px;cursor:pointer;font-size:12px;user-select:none;border:1px solid " + (isOn ? "#0176d3" : "#d1d5db") + ";background:" + (isOn ? "rgba(1,118,211,0.1)" : "#fff") + ";";
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.value = opt;
+            cb.checked = isOn;
+            cb.style.cssText = "margin:0;";
+            cb.addEventListener("change", () => {
+              tag.style.borderColor = cb.checked ? "#0176d3" : "#d1d5db";
+              tag.style.background = cb.checked ? "rgba(1,118,211,0.1)" : "#fff";
+            });
+            tag.appendChild(cb);
+            tag.appendChild(document.createTextNode(" " + opt));
+            chipsRow.appendChild(tag);
+          });
+          inputEl.appendChild(chipsRow);
+          const actions = document.createElement("div");
+          actions.style.cssText = "display:flex;gap:6px;justify-content:flex-end;";
+          const btnDone = document.createElement("button");
+          btnDone.type = "button";
+          btnDone.textContent = "Done";
+          btnDone.className = "ms-done";
+          btnDone.style.cssText = "padding:4px 12px;background:#0176d3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;";
+          const btnCancel = document.createElement("button");
+          btnCancel.type = "button";
+          btnCancel.textContent = "Cancel";
+          btnCancel.className = "ms-cancel";
+          btnCancel.style.cssText = "padding:4px 12px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:12px;";
+          actions.appendChild(btnCancel);
+          actions.appendChild(btnDone);
+          inputEl.appendChild(actions);
         } else if (options) {
           // Dropdown selector for status/dropdown fields
           inputEl = document.createElement("select");
@@ -2498,6 +2545,25 @@
         const commit = async () => {
           if (committed) return;
           committed = true;
+
+          // Multi-select commit path: collect checked values, save as array
+          if (MULTI_SELECT_FIELDS.has(fieldKey)) {
+            const checked = Array.from(inputEl.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+            const newText = checked.length ? checked.join(", ") : "—";
+            valueText.textContent = newText;
+            left.remove();
+            valueText.style.display = "";
+            pencil.style.display = "";
+            const oldSet = new Set(String(oldValue || "").split(/,\s*/).map(s => s.trim()).filter(Boolean));
+            const newSet = new Set(checked);
+            const changed = oldSet.size !== newSet.size || Array.from(oldSet).some(v => !newSet.has(v));
+            if (changed) {
+              await saveToMonday(fieldKey, checked);
+              showSaveToast("success");
+            }
+            return;
+          }
+
           let newValue = (inputEl.value || "").trim() || "—";
 
           // Phase E1: Clamp and format numeric fields
@@ -2529,7 +2595,17 @@
           pencil.style.display = "";
         };
 
-        if (options) {
+        if (MULTI_SELECT_FIELDS.has(fieldKey)) {
+          // Multi-select: commit on Done, cancel on Cancel or Escape
+          const btnDone = inputEl.querySelector(".ms-done");
+          const btnCancel = inputEl.querySelector(".ms-cancel");
+          if (btnDone) btnDone.addEventListener("click", commit);
+          if (btnCancel) btnCancel.addEventListener("click", cancel);
+          inputEl.addEventListener("keydown", (ke) => {
+            if (ke.key === "Escape") cancel();
+          });
+          // Do not focus the wrap — let the user click a checkbox directly
+        } else if (options) {
           // For select: commit on change, cancel on blur if unchanged
           inputEl.addEventListener("change", commit);
           inputEl.addEventListener("blur", () => {
@@ -2546,8 +2622,10 @@
           });
         }
 
-        inputEl.focus();
-        if (!options && inputEl.select) inputEl.select();
+        if (!MULTI_SELECT_FIELDS.has(fieldKey)) {
+          inputEl.focus();
+          if (!options && inputEl.select) inputEl.select();
+        }
       });
     });
 
