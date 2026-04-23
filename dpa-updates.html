@@ -646,20 +646,36 @@
     }
 
     async function saveNote(text, textarea) {
-      if (!text) return;
+      console.log('[saveNote] called with', { text, src });
+      if (!text) { console.warn('[saveNote] empty text, aborting'); return; }
       const btn = textarea.nextElementSibling;
+      const itemId = src && (src.item_id || src.itemId || src.pulseId);
+      const boardId = src && (src.board_id || src.boardId) || '7886033430';
+      if (!itemId) {
+        console.error('[saveNote] NO item_id in src — load never populated it', src);
+        showSuccess('Error: no item loaded');
+        return;
+      }
+      const payload = { action:'add_note', item_id:itemId, board_id:boardId, note:text, timestamp:new Date().toISOString() };
+      console.log('[saveNote] POSTing to', MAKE_WEBHOOK_URL, payload);
       btn.disabled = true; btn.textContent = 'Saving…';
       try {
-        await fetch(MAKE_WEBHOOK_URL, {
+        const res = await fetch(MAKE_WEBHOOK_URL, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action:'add_note', item_id:src.item_id, board_id:src.board_id, note:text, timestamp:new Date().toISOString() })
+          body: JSON.stringify(payload)
         });
+        const body = await res.json().catch(() => ({}));
+        console.log('[saveNote] response', res.status, body);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (body.error) throw new Error(body.error);
         showSuccess('Note saved to Monday.com ✓');
-      } catch { showSuccess('Saved locally (check webhook)'); }
-      finally { btn.disabled = false; btn.textContent = 'Save'; }
-      dealHighlights.unshift({ date: new Date().toISOString(), author: 'You', text });
-      renderHighlights();
-      textarea.value = '';
+        dealHighlights.unshift({ date: new Date().toISOString(), author: 'You', text });
+        renderHighlights();
+        textarea.value = '';
+      } catch (err) {
+        console.error('[saveNote] save failed', err);
+        showSuccess('Save failed: ' + err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Save'; }
     }
 
     function showSuccess(msg) {
@@ -669,12 +685,26 @@
       setTimeout(() => el.classList.remove('show'), 3000);
     }
 
-    document.getElementById('saveQuickNote').addEventListener('click', () => {
-      const ta = document.getElementById('quickNoteInput'); saveNote(ta.value.trim(), ta);
-    });
-    document.getElementById('saveHighlightNote').addEventListener('click', () => {
-      const ta = document.getElementById('highlightNoteInput'); saveNote(ta.value.trim(), ta);
-    });
+    // Bind save buttons defensively — log whether each element was found
+    const btnQN = document.getElementById('saveQuickNote');
+    const btnHN = document.getElementById('saveHighlightNote');
+    console.log('[updates] button bindings', { saveQuickNote: !!btnQN, saveHighlightNote: !!btnHN });
+    if (btnQN) {
+      btnQN.addEventListener('click', () => {
+        console.log('[updates] saveQuickNote clicked');
+        const ta = document.getElementById('quickNoteInput');
+        if (ta) saveNote(ta.value.trim(), ta);
+        else console.error('[updates] quickNoteInput textarea missing');
+      });
+    }
+    if (btnHN) {
+      btnHN.addEventListener('click', () => {
+        console.log('[updates] saveHighlightNote clicked');
+        const ta = document.getElementById('highlightNoteInput');
+        if (ta) saveNote(ta.value.trim(), ta);
+        else console.error('[updates] highlightNoteInput textarea missing');
+      });
+    }
 
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
