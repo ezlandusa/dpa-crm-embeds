@@ -1745,14 +1745,9 @@
           if (node) node.textContent = formatValue(value);
         }
 
-        // Phase E1: Override condition with numeric condition_multiplier (0-100 score)
-        if (payload.condition_multiplier !== undefined && payload.condition_multiplier !== null) {
-          const condNode = document.querySelector('.field[data-field="condition"] .value-text');
-          if (condNode) {
-            const val = String(payload.condition_multiplier).replace(/[^0-9]/g, "");
-            condNode.textContent = val ? val + "/100" : "—";
-          }
-        }
+        // Phase E1 DISABLED 2026-04-23: condition now shows the Property Condition
+        // status label (e.g. "Distressed") from payload.condition. The numeric
+        // multiplier overwrite was replacing the label with a percentage.
 
         // Top snapshot mapping (header fields)
         for (const [key, value] of Object.entries(payload)) {
@@ -2208,7 +2203,8 @@
       "title_issue": ["No Issues", "Tax Lien(s)", "Heirship Affidavit Needed", "Probate Required", "Judgment Lien", "HOA Lien", "Clouded Title", "Missing/Defective Deed", "Unreleased Mortgage", "Lis Pendens", "Multiple Ownership Claims", "Boundary/Survey Dispute"],
       "deed_status": ["Not Started", "In Progress", "Pending Recording", "Recorded", "Filed"],
       "will_status": ["Working on it", "Done", "Stuck"],
-      "cca_status": ["CCA 1", "CCA 2", "CCA 3", "CCA 4", "CCA 5", "CCA 6", "CCA 7", "CCA 8", "CCA 9", "CCA 10", "EXHAUSTED"]
+      "cca_status": ["CCA 1", "CCA 2", "CCA 3", "CCA 4", "CCA 5", "CCA 6", "CCA 7", "CCA 8", "CCA 9", "CCA 10", "EXHAUSTED"],
+      "condition": ["Good", "Fair", "Distressed", "Heavily Distressed", "Vacant / Land", "Tear-Down"]
     };
 
     // Per-board column ID maps — data-field → Monday.com column ID
@@ -2216,11 +2212,11 @@
     const BOARD_COLUMN_MAPS = {
       // Prospecting
       "7886033430": {
-        "lead_type":          "color_mkv18m98",
+        "lead_type":          "color_mm1ra24",
         "tax_status":         "color_mm1reh6a",
         "occupancy":          "color_mm1ksrpz",
-        "days_of_inactivity": "numeric_mm1kr9s1",
-        "total_equity":       "formula_mm1kmp9k",
+        "days_of_inactivity": "formula_mm21wnfa",
+        "total_equity":       "formula_mm21rw15",
         "deed_status":        "color_mm1rmn3j",
         "will_status":        "color_mm20hvce",
         "title_issue":        "color_mm20a4nd",
@@ -2230,7 +2226,7 @@
         "death_confirmed":    "color_mm1jxhen",
         "owner_status":       "color_mm1jrrxs",
         "last_payment_date":  "date_mm1jt744",
-        "condition":          "numeric_mm1jftsp",
+        "condition":          "color_mm1r9hv5",
         "appraisal":          "dup__of_retail_value",
         "land_value":         "numeric_mm1jasdz",
         "improvement_value":  "numeric_mm1jjkyx",
@@ -2239,7 +2235,7 @@
         "heir_count":         "dropdown_mm1jqw9x",
         "taxes_owed":         "numbers3__1",
         "next_action_step":   "color",
-        "stalled_reason":     "long_text_mkp4xwq7",
+        "stalled_reason":     "long_text_mm1m6k5",
         "follow_up_date":     "date_mm29hs98",
         "last_contact_date":  "date_mm1cwn6k",
         "pipeline_stage":     "color_mm1c7yw1",
@@ -2457,9 +2453,7 @@
         const options = FIELD_OPTIONS[fieldKey];
 
         // Phase E1: Numeric fields get number input with constraints
-        const NUMERIC_FIELDS = {
-          "condition": { min: 0, max: 100, step: 1, suffix: "/100" }
-        };
+        const NUMERIC_FIELDS = {};
 
         if (NUMERIC_FIELDS[fieldKey]) {
           // Number input for numeric fields (e.g., condition 0-100)
