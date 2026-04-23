@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deal Summary Embed</title>
+
+  <style>
+    :root{
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --line: #e5e7eb;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --label: #374151;
+      --blue: #0176d3;
+      --sf-blue: #032d60;
+      --green: #059669;
+      --radius: 10px;
+      --font: "Salesforce Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{
+      margin: 0; padding: 0;
+      background: transparent;
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    .widget{
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      overflow: hidden;
+      max-width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── LOADING ── */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.9);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.3s ease;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--line);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ERROR BANNER ── */
+    .error-banner {
+      display: none;
+      background: #fef2f2; border-bottom: 1px solid #fecaca;
+      padding: 10px 20px; font-size: 14px; color: #b91c1c;
+      flex-shrink: 0;
+    }
+    .error-banner.show { display: block; }
+
+    /* ========== TABS ========== */
+    .tabs-bar{
+      display: flex; align-items: flex-end;
+      gap: 32px; padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface); flex-shrink: 0;
+    }
+    .tab{
+      appearance: none; border: 0; background: transparent;
+      font-family: var(--font); font-size: 14px;
+      padding: 13px 0; color: var(--muted); cursor: pointer;
+      position: relative; font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); font-weight: 600; }
+    .tab.active::after{
+      content: ""; position: absolute;
+      left: 0; right: 0; bottom: -1px;
+      height: 2px; background: var(--blue);
+    }
+
+    /* ========== TAB CONTENT ========== */
+    .tab-content{ display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .tab-content.active{ display: flex; }
+
+    /* ========== TAB 1: LAST CONVERSATION ========== */
+    .conversation-header{
+      padding: 12px 20px 13px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface); flex-shrink: 0;
+    }
+
+    /* Date row */
+    .header-date-block{
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .header-date-label{
+      font-size: 12px; font-weight: 500; color: var(--muted);
+    }
+    .header-date-sep{ color: var(--line); font-size: 14.5px; }
+    .header-date-value{
+      font-size: 13.5px; font-weight: 700; color: var(--sf-blue);
+    }
+    .header-date-rel{
+      font-size: 12px; color: var(--muted);
+    }
+
+    /* Contact name */
+    .header-contact-name{
+      font-size: 18.5px; font-weight: 700; color: var(--blue);
+      text-decoration: none; display: block;
+      letter-spacing: -0.01em; line-height: 1.25;
+    }
+    .header-contact-name:hover{ color: var(--sf-blue); }
+
+    /* Body */
+    .conversation-body{
+      padding: 14px 20px 14px;
+      flex: 1; overflow-y: auto;
+    }
+    .section{ margin-bottom: 20px; }
+    .section:last-child{ margin-bottom: 0; }
+
+    /* Section label */
+    .section-label{
+      font-size: 12px; font-weight: 500; color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    /* Contact detail chips — original flat layout */
+    .contact-details{ display: flex; gap: 32px; flex-wrap: wrap; }
+    .detail-chip{ display: flex; flex-direction: column; gap: 3px; }
+    .detail-chip-label{
+      font-size: 11.5px; font-weight: 500; color: var(--muted);
+    }
+    .detail-chip-value{
+      font-size: 15.5px; font-weight: 600; color: var(--sf-blue);
+    }
+
+    /* Key points */
+    .key-points-section{
+      background: #f0f7ff; border: 1px solid #bfdbfe;
+      border-radius: 8px; padding: 14px 16px;
+    }
+    .key-points-header{
+      display: flex; align-items: center; gap: 7px;
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .key-points-icon{
+      width: 19.5px; height: 19.5px; background: var(--blue);
+      border-radius: 4px; display: flex; align-items: center;
+      justify-content: center; color: white; font-size: 12.5px;
+      font-weight: 700; flex-shrink: 0; line-height: 1;
+      padding-bottom: 1px;
+    }
+    .key-points-list{ margin: 0; padding: 0 0 0 16px; list-style: disc; }
+    .key-points-list li{ font-size: 15.5px; color: var(--text); line-height: 1.65; margin: 6px 0; }
+    .key-points-list li::marker{ color: var(--blue); }
+
+    /* Note input */
+    .update-input-section{
+      padding: 14px 20px; border-top: 1px solid var(--line);
+      background: white; flex-shrink: 0;
+    }
+    .input-row{ display: flex; gap: 10px; align-items: flex-start; }
+    .input-label{
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      padding-top: 10px; white-space: nowrap;
+    }
+    .note-textarea{
+      flex: 1; min-height: 58px; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: 4px;
+      font-family: var(--font); font-size: 14.5px;
+      color: var(--text); resize: vertical;
+      transition: border-color 0.15s ease;
+    }
+    .note-textarea:focus{
+      outline: none; border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(1,118,211,0.1);
+    }
+    .note-textarea::placeholder{ color: #9ca3af; }
+    .save-btn{
+      padding: 10px 28px; background: var(--blue); color: white;
+      border: none; border-radius: 4px; font-family: var(--font);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s ease; white-space: nowrap; align-self: flex-start;
+    }
+    .save-btn:hover{ background: #0161b3; }
+    .save-btn:disabled{ background: #94a3b8; cursor: not-allowed; }
+
+    /* Success alert */
+    .success-alert{
+      position: fixed; top: 20px; right: 20px;
+      background: #d1fae5; border: 1px solid #6ee7b7;
+      border-radius: 6px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index: 1000;
+      opacity: 0; transform: translateY(-10px);
+      transition: all 0.3s ease; pointer-events: none;
+    }
+    .success-alert.show{ opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .success-icon{
+      width: 20px; height: 20px; background: #059669;
+      border-radius: 50%; color: white; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+    .success-text{ font-size: 14px; color: #065f46; font-weight: 600; }
+
+    /* ========== TAB 2: UPDATE HISTORY ========== */
+    .timeline-header{
+      padding: 12px 20px; border-bottom: 1px solid var(--line);
+      background: var(--surface); flex-shrink: 0;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .tl-stat{ display: flex; flex-direction: column; gap: 2px; }
+    .tl-stat-value{ font-size: 18px; font-weight: 600; color: var(--text); line-height: 1; }
+    .tl-stat-label{ font-size: 11px; color: var(--muted); font-weight: 500; }
+    .tl-divider{ width: 1px; height: 28px; background: var(--line); }
+
+    .timeline-body{ flex: 1; overflow-y: auto; background: #fafbfc; }
+    .timeline-track{ position: relative; padding: 20px 20px 20px 52px; }
+    .timeline-track::before{
+      content: ''; position: absolute;
+      left: 27px; top: 0; bottom: 0;
+      width: 1.5px; background: #e5e7eb;
+    }
+    .tl-month-header{
+      position: relative; display: flex; align-items: center;
+      gap: 10px; margin-bottom: 14px; margin-top: 8px;
+    }
+    .tl-month-header:first-child{ margin-top: 0; }
+    .tl-month-dot{
+      position: absolute; left: -31px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #fff; border: 1.5px solid #d1d5db;
+      top: 50%; transform: translateY(-50%);
+    }
+    .tl-month-label{ font-size: 11px; font-weight: 700; color: var(--muted); }
+    .tl-month-rule{ flex: 1; height: 1px; background: #f0f0f0; }
+
+    .timeline-item{
+      position: relative;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 12px; align-items: start;
+      padding: 0 0 20px 0;
+    }
+    .timeline-item:last-child{ padding-bottom: 0; }
+    .tl-dot{
+      position: absolute; left: -31px; top: 4px;
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 2px solid #fff; box-shadow: 0 0 0 1.5px currentColor; z-index: 1;
+    }
+    .timeline-item.interested    .tl-dot { background: #10b981; color: #10b981; }
+    .timeline-item.warm          .tl-dot { background: #f59e0b; color: #f59e0b; }
+    .timeline-item.no-answer     .tl-dot { background: #94a3b8; color: #94a3b8; }
+    .timeline-item.not-interested .tl-dot { background: #ef4444; color: #ef4444; }
+    .timeline-item.default       .tl-dot { background: #6b7280; color: #6b7280; }
+
+    .tl-body{ display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .tl-top-row{ display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .tl-contact{ font-size: 14.5px; font-weight: 600; color: var(--blue); }
+    .tl-badge{
+      display: inline-flex; padding: 2px 8px;
+      border-radius: 999px; font-size: 11.5px; font-weight: 600;
+    }
+    .tl-badge.interested    { background: #d1fae5; color: #065f46; }
+    .tl-badge.warm          { background: #fef3c7; color: #92400e; }
+    .tl-badge.no-answer     { background: #f1f5f9; color: #475569; }
+    .tl-badge.not-interested{ background: #fee2e2; color: #991b1b; }
+    .tl-badge.default       { background: #f3f4f6; color: #374151; }
+
+    .tl-latest-tag{
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10.5px; font-weight: 700;
+      color: var(--blue); background: #e0f2fe;
+      border-radius: 999px; padding: 2px 7px;
+    }
+    .tl-latest-dot{
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--blue); animation: pulse 2s infinite;
+    }
+    @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .tl-notes{ margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .tl-notes li{
+      font-size: 13.5px; color: #6b7280; line-height: 1.5;
+      display: flex; align-items: baseline; gap: 5px;
+    }
+    .tl-notes li::before{ content: "·"; color: #d1d5db; flex-shrink: 0; }
+
+    .tl-date-col{
+      display: flex; flex-direction: column;
+      align-items: flex-end; gap: 1px;
+      white-space: nowrap; padding-top: 2px;
+    }
+    .tl-date-main{ font-size: 13px; color: var(--text); font-weight: 500; }
+    .tl-date-rel{ font-size: 11.5px; color: var(--muted); }
+
+    /* ========== TAB 3: DEAL NOTES ========== */
+    .highlights-header{
+      padding: 12px 20px; border-bottom: 1px solid var(--line);
+      background: var(--surface); flex-shrink: 0;
+    }
+    .highlights-meta{ font-size: 13px; color: var(--muted); }
+    .highlights-body{ flex: 1; overflow-y: auto; background: #fafbfc; }
+    .highlights-track{ position: relative; padding: 24px 20px 24px 28px; }
+    .highlights-track::before{
+      content: ''; position: absolute;
+      left: 14px; top: 32px; bottom: 32px;
+      width: 1px; background: #d1d5db;
+    }
+    .highlight-item{
+      position: relative; margin-bottom: 16px;
+      background: white; border: 1px solid var(--line);
+      border-radius: 8px; padding: 14px 16px;
+      transition: box-shadow 0.2s ease;
+    }
+    .highlight-item:hover{ box-shadow: 0 4px 12px rgba(0,0,0,.07); }
+    .highlight-item:last-child{ margin-bottom: 0; }
+    .highlight-dot{
+      position: absolute; left: -20px; top: 18px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--blue); z-index: 1; box-shadow: 0 0 0 3px white;
+    }
+    .highlight-header{
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 8px;
+    }
+    .highlight-author{ font-size: 14px; font-weight: 600; color: var(--text); }
+    .highlight-date{ font-size: 12.5px; color: var(--muted); }
+    .highlight-text{ font-size: 14px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+
+    .empty-state{ text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state-icon{ font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+    .empty-state-text{ font-size: 15px; font-weight: 500; }
+
+    /* Scrollbar */
+    .conversation-body::-webkit-scrollbar,
+    .timeline-body::-webkit-scrollbar,
+    .highlights-body::-webkit-scrollbar { width: 5px; }
+    .conversation-body::-webkit-scrollbar-track,
+    .timeline-body::-webkit-scrollbar-track,
+    .highlights-body::-webkit-scrollbar-track { background: transparent; }
+    .conversation-body::-webkit-scrollbar-thumb,
+    .timeline-body::-webkit-scrollbar-thumb,
+    .highlights-body::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  </style>
+</head>
+
+<body>
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+  <div class="widget">
+    <div class="error-banner" id="errorBanner">⚠ Could not load deal data.</div>
+
+    <div class="success-alert" id="successAlert">
+      <div class="success-icon">✓</div>
+      <div class="success-text" id="successText">Note saved to Monday.com</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-bar">
+      <button class="tab active" data-tab="conversation">Last Conversation</button>
+      <button class="tab" data-tab="history">Update History</button>
+      <button class="tab" data-tab="highlights">Deal Notes</button>
+    </div>
+
+    <!-- ===== TAB 1 ===== -->
+    <div class="tab-content active" id="conversation-tab">
+      <div class="conversation-header">
+        <div class="header-date-block">
+          <span class="header-date-label">Last Meaningful Contact</span>
+          <span class="header-date-sep">|</span>
+          <span class="header-date-value" id="conversationDate">—</span>
+          <span class="header-date-rel" id="conversationRel"></span>
+        </div>
+        <a href="#" class="header-contact-name" id="contactName">Loading…</a>
+      </div>
+
+      <div class="conversation-body">
+        <div class="section" style="margin-bottom:20px; margin-top:2px;">
+          <div class="section-label">Contact Details</div>
+          <div class="contact-details" id="contactDetailsRow"></div>
+        </div>
+
+        <div class="key-points-section" id="keyPointsSection">
+          <div class="key-points-header">
+            <div class="key-points-icon">★</div>
+            <span>Key Conversation Points</span>
+          </div>
+          <ul class="key-points-list" id="keyPointsList">
+            <li style="color:var(--muted)">Loading…</li>
+          </ul>
+        </div>
+
+        <div id="noDataState" style="display:none; text-align:center; padding:20px 16px 12px;">
+          <img src="https://raw.githubusercontent.com/Aliqu1233333/fffffffffffadasdx/main/unnamed%20(2).JPG"
+               style="width:100%;max-width:520px;opacity:0.82;margin-bottom:14px;" alt="No data" />
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:5px;">No conversational data added yet</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.5;">Once notes are added to related contacts, the AI summary will appear here.</div>
+        </div>
+      </div>
+
+      <div class="update-input-section">
+        <div class="input-row">
+          <div class="input-label">Quick Note</div>
+          <textarea class="note-textarea" id="quickNoteInput" placeholder="Add a note about this deal…" rows="2"></textarea>
+          <button class="save-btn" id="saveQuickNote">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2 ===== -->
+    <div class="tab-content" id="history-tab">
+      <div class="timeline-header">
+        <div class="tl-stat">
+          <span class="tl-stat-value" id="totalConversations">—</span>
+          <span class="tl-stat-label">Notes</span>
+        </div>
+        <div class="tl-divider"></div>
+        <div class="tl-stat">
+          <span class="tl-stat-value" id="lastUpdate">—</span>
+          <span class="tl-stat-label">Last update</span>
+        </div>
+      </div>
+      <div class="timeline-body">
+        <div class="timeline-track" id="timelineContainer"></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 3 ===== -->
+    <div class="tab-content" id="highlights-tab">
+      <div class="highlights-header">
+        <div class="highlights-meta">
+          <span><strong id="totalHighlights">0</strong> deal notes</span>
+        </div>
+      </div>
+      <div class="highlights-body">
+        <div class="highlights-track" id="highlightsContainer">
+          <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-text">No deal notes yet</div>
+          </div>
+        </div>
+      </div>
+      <div class="update-input-section">
+        <div class="input-row">
+          <div class="input-label">Add Note</div>
+          <textarea class="note-textarea" id="highlightNoteInput" placeholder="Add a note about this deal…" rows="2"></textarea>
+          <button class="save-btn" id="saveHighlightNote">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LOAD_WEBHOOK_URL = "https://tphllc.app.n8n.cloud/webhook/dpa-updates-load";
+    const MAKE_WEBHOOK_URL = "https://tphllc.app.n8n.cloud/webhook/dpa-updates-save";
+
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function toTitleCase(str) {
+      if (!str || str === '—') return str;
+      return String(str).toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function relativeTime(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d)) return '';
+      const diff = Math.floor((Date.now() - d) / 86400000);
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Yesterday';
+      if (diff < 7)  return `${diff} Days Ago`;
+      if (diff < 30) return `${Math.floor(diff/7)}w Ago`;
+      return `${Math.floor(diff/30)}mo Ago`;
+    }
+
+    function statusClass(status) {
+      if (!status) return 'default';
+      const s = status.toLowerCase();
+      if (s.includes('not interested')) return 'not-interested';
+      if (s.includes('interested'))     return 'interested';
+      if (s.includes('warm'))           return 'warm';
+      if (s.includes('no answer') || s.includes('no-answer')) return 'no-answer';
+      return 'default';
+    }
+
+    function fmtDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      if (isNaN(d)) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function getMonthYear(dateStr) {
+      if (!dateStr) return 'Unknown';
+      const d = new Date(dateStr);
+      if (isNaN(d)) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    let src = {};
+    let dealHighlights = [];
+
+    function renderAll() {
+      // Header
+      document.getElementById('conversationDate').textContent = fmtDate(src.conv_date);
+      const rel = relativeTime(src.conv_date);
+      document.getElementById('conversationRel').textContent = rel ? `· ${rel}` : '';
+      document.getElementById('contactName').textContent = src.contact_name || '—';
+
+      // Contact chips
+      const chips = [
+        { label: 'Lead status',  value: toTitleCase(src.lead_status  || '—') },
+        { label: 'Relationship', value: toTitleCase(src.relationship || '—') },
+        { label: 'Ownership',    value: toTitleCase(src.ownership    || '—') }
+      ];
+      document.getElementById('contactDetailsRow').innerHTML = chips.map(c => `
+        <div class="detail-chip">
+          <span class="detail-chip-label">${escapeHtml(c.label)}</span>
+          <span class="detail-chip-value">${escapeHtml(c.value)}</span>
+        </div>`).join('');
+
+      // Key points
+      const kpRaw = src.key_points || '';
+      const kp = Array.isArray(kpRaw)
+        ? kpRaw
+        : kpRaw.split('|').map(s => s.trim()).filter(Boolean);
+
+      if (kp.length) {
+        document.getElementById('keyPointsSection').style.display = '';
+        document.getElementById('noDataState').style.display   = 'none';
+        document.getElementById('keyPointsList').innerHTML = kp.map(p => `<li>${escapeHtml(p)}</li>`).join('');
+      } else {
+        document.getElementById('keyPointsSection').style.display = 'none';
+        document.getElementById('noDataState').style.display   = '';
+      }
+
+      // Timeline
+      let tl = [];
+      try { tl = Array.isArray(src.timeline) ? src.timeline : JSON.parse(src.timeline || '[]'); } catch(e){}
+
+      document.getElementById('totalConversations').textContent = tl.length || '0';
+      document.getElementById('lastUpdate').textContent = tl[0] ? relativeTime(tl[0].date) : '—';
+
+      const tlEl = document.getElementById('timelineContainer');
+      if (!tl.length) {
+        tlEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No update history yet</div></div>`;
+      } else {
+        let lastMonth = null, html = '';
+        tl.forEach((u, i) => {
+          const month = getMonthYear(u.date);
+          if (month !== lastMonth) {
+            html += `<div class="tl-month-header"><div class="tl-month-dot"></div><span class="tl-month-label">${escapeHtml(month)}</span><div class="tl-month-rule"></div></div>`;
+            lastMonth = month;
+          }
+          const sc = statusClass(u.status);
+          const notes = Array.isArray(u.notes) ? u.notes : (u.notes ? [u.notes] : []);
+          html += `<div class="timeline-item ${sc}">
+            <div class="tl-dot"></div>
+            <div class="tl-body">
+              <div class="tl-top-row">
+                <span class="tl-contact">${escapeHtml(u.contact)}</span>
+                <span class="tl-badge ${sc}">${escapeHtml(toTitleCase(u.status || 'Update'))}</span>
+                ${i === 0 ? `<span class="tl-latest-tag"><span class="tl-latest-dot"></span>Latest</span>` : ''}
+              </div>
+              <ul class="tl-notes">${notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>
+            </div>
+            <div class="tl-date-col">
+              <span class="tl-date-main">${escapeHtml(fmtDate(u.date))}</span>
+              <span class="tl-date-rel">${escapeHtml(relativeTime(u.date))}</span>
+            </div>
+          </div>`;
+        });
+        tlEl.innerHTML = html;
+      }
+
+      // Highlights
+      try { dealHighlights = Array.isArray(src.highlights) ? src.highlights : JSON.parse(src.highlights || '[]'); }
+      catch(e) { dealHighlights = []; }
+      renderHighlights();
+    }
+
+    function renderHighlights() {
+      const el = document.getElementById('highlightsContainer');
+      document.getElementById('totalHighlights').textContent = dealHighlights.length;
+      if (!dealHighlights.length) {
+        el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">No deal notes yet</div></div>`;
+        return;
+      }
+      el.innerHTML = dealHighlights.map(h => `
+        <div class="highlight-item">
+          <div class="highlight-dot"></div>
+          <div class="highlight-header">
+            <span class="highlight-author">${escapeHtml(h.author || 'You')}</span>
+            <span class="highlight-date">${escapeHtml(fmtDate(h.date))} · ${escapeHtml(relativeTime(h.date))}</span>
+          </div>
+          <div class="highlight-text">${escapeHtml(h.text)}</div>
+        </div>`).join('');
+    }
+
+    async function loadDealData() {
+      const raw    = window.location.search.replace('?', '');
+      const params = new URLSearchParams(window.location.search);
+      let item_id  = params.get('item_id') || params.get('pulseId') || null;
+      let board_id = params.get('board_id') || params.get('boardId') || '';
+
+      if (!item_id) { const m = raw.match(/(\d+)\/pulses\/(\d+)/);  if (m) { board_id=m[1]; item_id=m[2]; } }
+      if (!item_id) { const m = raw.match(/(\d+)\/item_id=(\d+)/);  if (m) { board_id=m[1]; item_id=m[2]; } }
+      if (!item_id) { const m = raw.match(/(\d+)\/(\d+)/);          if (m) { board_id=m[1]; item_id=m[2]; } }
+
+      if (!item_id) { src = {}; renderAll(); return; }
+
+      try {
+        const res = await fetch(LOAD_WEBHOOK_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item_id, board_id })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        src = await res.json();
+        if(Array.isArray(src)) src = src[0] || {};
+        renderAll();
+      } catch(err) {
+        src = {}; renderAll();
+      }
+    }
+
+    async function saveNote(text, textarea) {
+      if (!text) return;
+      const btn = textarea.nextElementSibling;
+      btn.disabled = true; btn.textContent = 'Saving…';
+      try {
+        await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action:'add_note', item_id:src.item_id, board_id:src.board_id, note:text, timestamp:new Date().toISOString() })
+        });
+        showSuccess('Note saved to Monday.com ✓');
+      } catch { showSuccess('Saved locally (check webhook)'); }
+      finally { btn.disabled = false; btn.textContent = 'Save'; }
+      dealHighlights.unshift({ date: new Date().toISOString(), author: 'You', text });
+      renderHighlights();
+      textarea.value = '';
+    }
+
+    function showSuccess(msg) {
+      document.getElementById('successText').textContent = msg;
+      const el = document.getElementById('successAlert');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    document.getElementById('saveQuickNote').addEventListener('click', () => {
+      const ta = document.getElementById('quickNoteInput'); saveNote(ta.value.trim(), ta);
+    });
+    document.getElementById('saveHighlightNote').addEventListener('click', () => {
+      const ta = document.getElementById('highlightNoteInput'); saveNote(ta.value.trim(), ta);
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+      });
+    });
+
+    loadDealData().finally(() => {
+      const ov = document.getElementById('loadingOverlay');
+      ov.classList.add('hidden');
+      setTimeout(() => ov.remove(), 400);
+    });
+  </script>
+</body>
+</html>
