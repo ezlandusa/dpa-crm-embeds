@@ -3107,35 +3107,34 @@
       saveBtn.textContent = 'Saving...';
 
       try {
-        // TODO: Send to Make.com webhook to update Monday.com subitem
         const webhookURL = 'https://tphllc.app.n8n.cloud/webhook/dpa-updates-save';
-        
-        const payload = {
-          contactName: currentNoteContact.name,
-          contactIndex: currentNoteContactIndex,
-          note: noteText,
-          timestamp: new Date().toISOString(),
-          boardId: 'BOARD_ID', // Extract from URL
-          pulseId: 'PULSE_ID'  // Extract from URL
-        };
+        const { boardId, pulseId } = extractIdsFromUrl();
 
-        // Uncomment when webhook is ready:
-        // const response = await fetch(webhookURL, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(payload)
-        // });
-        // 
-        // if (!response.ok) throw new Error('Failed to save note');
+        // Post the note on the heir's own subitem when we know it;
+        // otherwise fall back to the main item with the name prefixed.
+        const subitemMatch = String(currentNoteContact.mondayUrl || '').match(/\/pulses\/(\d+)/);
+        const targetItemId = subitemMatch ? subitemMatch[1] : pulseId;
+        const noteBody = subitemMatch ? noteText : `[${currentNoteContact.name}] ${noteText}`;
+        if (!targetItemId) throw new Error('No item id to post the note to');
 
-        console.log('Note to save:', payload);
-        
-        // Simulate success
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        alert(`Note saved for ${currentNoteContact.name}!`);
+        const response = await fetch(webhookURL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_id: targetItemId,
+            note: noteBody,
+            contactName: currentNoteContact.name,
+            boardId: boardId
+          })
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const result = await response.json().catch(() => ({}));
+        const resErr = (Array.isArray(result) ? result[0] : result)?.error;
+        if (resErr) throw new Error(resErr);
+
+        showSaveToast('success');
         closeNoteModal();
-        
+
       } catch (error) {
         console.error('Error saving note:', error);
         alert('Failed to save note. Please try again.');
