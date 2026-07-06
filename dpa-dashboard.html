@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #f6f7fb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #f6f7fb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #323338; }
 
     .loading {
       display: flex; align-items: center; justify-content: center;
@@ -32,39 +32,198 @@
     }
     .dashboard.visible { display: flex; }
 
-    /* Deal Path: full width on top */
+    /* Deal Path: full width on top (visible on every tab) */
     .panel-dealpath {
       width: 100%;
       height: 200px;
       flex-shrink: 0;
     }
 
-    /* Bottom row: Record Page left, Updates right */
+    /* ---------- MAIN TABS ---------- */
+    .maintabs {
+      display: flex; align-items: center; gap: 2px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 14px;
+      flex-shrink: 0;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .maintab {
+      appearance: none; background: none; border: none;
+      font: inherit; font-size: 14px; font-weight: 500;
+      color: #676879; padding: 12px 14px; cursor: pointer;
+      position: relative; white-space: nowrap;
+    }
+    .maintab:hover { color: #323338; }
+    .maintab[aria-selected="true"] { color: #0176d3; font-weight: 600; }
+    .maintab[aria-selected="true"]::after {
+      content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px;
+      height: 2px; background: #0176d3; border-radius: 2px 2px 0 0;
+    }
+    .maintab .new-badge {
+      background: #b7892b; color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px;
+      letter-spacing: .4px;
+    }
+    .save-indicator {
+      margin-left: auto; font-size: 12px; font-weight: 600; color: #94a3b8;
+      display: flex; align-items: center; gap: 6px; padding-right: 4px;
+    }
+    .save-indicator .dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+    .save-indicator.state-dirty  .dot { background: #f59e0b; }
+    .save-indicator.state-saving .dot { background: #0176d3; animation: pulse 1s infinite; }
+    .save-indicator.state-saved  .dot { background: #10b981; }
+    .save-indicator.state-error  .dot { background: #dc2626; }
+    @keyframes pulse { 50% { opacity: .35; } }
+
+    /* ---------- PANES ---------- */
+    .pane { display: none; }
+    .pane.active { display: block; }
+    #pane-deal.active { display: flex; flex-direction: column; }
+
     .bottom-row {
       display: flex;
-      flex: 1;
       min-height: 600px;
     }
-    .panel-recordpage {
-      flex: 7;
-      min-width: 0;
-      height: 100%;
-    }
-    .panel-updates {
-      flex: 3;
-      min-width: 0;
-      height: 100%;
-      border-left: 1px solid #e0e0e0;
-    }
+    .panel-recordpage { flex: 7; min-width: 0; }
+    .panel-updates { flex: 3; min-width: 0; border-left: 1px solid #e0e0e0; }
+    .panel-recordpage iframe, .panel-updates iframe { height: 100%; min-height: 600px; }
 
-    iframe { width: 100%; height: 100%; border: none; }
+    iframe { width: 100%; height: 100%; border: none; display: block; }
 
-    /* Stack on narrow screens */
     @media (max-width: 900px) {
       .bottom-row { flex-direction: column; }
       .panel-recordpage { min-height: 600px; }
       .panel-updates { min-height: 450px; border-left: none; border-top: 1px solid #e0e0e0; }
     }
+
+    /* ---------- SHARED FORM STYLES (Research / AOH / Heirs) ---------- */
+    .pane-inner { padding: 18px; max-width: 1420px; }
+    .cards-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 1000px) { .cards-2col { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .card h5 {
+      margin: 0 0 12px; font-size: 12.5px; color: #1f3a5f;
+      text-transform: uppercase; letter-spacing: .5px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card h5 .spacer { flex: 1; }
+
+    .fld { margin-bottom: 10px; min-width: 0; }
+    .fld label {
+      display: block; font-size: 10.5px; font-weight: 700; color: #5a6478;
+      text-transform: uppercase; letter-spacing: .4px; margin: 0 0 4px;
+    }
+    .fld input[type="text"], .fld input[type="date"], .fld input[type="tel"],
+    .fld input[type="number"], .fld select, .fld textarea {
+      width: 100%; border: 1px solid #e5e7eb; border-radius: 7px;
+      padding: 7px 10px; font-size: 13px; font-family: inherit; color: #323338;
+      background: #fbfcfe;
+    }
+    .fld textarea { min-height: 64px; resize: vertical; }
+    .fld input:focus, .fld select:focus, .fld textarea:focus {
+      outline: none; border-color: #0176d3; background: #fff;
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 16px; }
+    @media (max-width: 720px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; border-radius: 14px; padding: 4px 12px;
+      cursor: pointer; user-select: none;
+      border: 1px solid #d1d5db; background: #fff; color: #676879;
+    }
+    .pill.on { border-color: #00854d; background: #e5f4ec; color: #00854d; }
+    .pill .tick { display: none; }
+    .pill.on .tick { display: inline; }
+
+    .radio-row { display: flex; gap: 14px; align-items: center; padding: 4px 0 2px; flex-wrap: wrap; }
+    .radio-row label.opt { display: inline-flex; gap: 5px; align-items: center; font-size: 13px; cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 500; color: #323338; }
+
+    .btn {
+      appearance: none; border: 1px solid #d1d5db; background: #fff; color: #323338;
+      border-radius: 7px; padding: 7px 14px; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn:hover { border-color: #94a3b8; }
+    .btn.blue { background: #0176d3; border-color: #0176d3; color: #fff; }
+    .btn.blue:hover { background: #0162b0; }
+    .btn.gold { background: #b7892b; border-color: #b7892b; color: #fff; }
+    .btn.gold:hover { background: #9e7523; }
+    .btn.ghost-danger { color: #b91c1c; border-color: #fecaca; background: #fff; }
+    .btn.ghost-danger:hover { background: #fef2f2; }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .btn.sm { padding: 4px 10px; font-size: 11.5px; }
+
+    /* Repeating rows */
+    .rep-row {
+      border: 1px solid #e5e7eb; border-radius: 9px; padding: 12px 12px 6px;
+      margin-bottom: 10px; background: #fdfdfe; position: relative;
+    }
+    .rep-row .rep-remove { position: absolute; top: 8px; right: 8px; }
+    .rep-nested {
+      margin: 6px 0 8px; padding: 10px 10px 4px; border-left: 3px solid #a9c4ea;
+      background: #f8fafc; border-radius: 0 8px 8px 0;
+    }
+    .rep-nested > .nested-title { font-size: 11px; font-weight: 700; color: #1f3a5f; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+    .rep-empty { font-size: 12.5px; color: #94a3b8; padding: 4px 0 10px; }
+
+    /* Title chain */
+    .chain { border-left: 3px solid #1f3a5f; margin: 4px 0 10px 6px; padding-left: 16px; }
+    .chain .chev { position: relative; margin-bottom: 12px; }
+    .chain .chev::before {
+      content: ""; position: absolute; left: -22px; top: 4px;
+      width: 9px; height: 9px; border-radius: 50%; background: #b7892b;
+    }
+
+    /* Family tree */
+    .treewrap {
+      border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;
+      height: 620px; background: #fff; position: relative;
+    }
+    .treewrap .tree-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: #94a3b8; font-size: 13px; font-weight: 600;
+    }
+    .treenote { font-size: 12px; color: #676879; margin: 8px 2px 0; }
+
+    /* Heir editor */
+    .heir-table-wrap { overflow-x: auto; }
+    table.heirs { width: 100%; border-collapse: collapse; min-width: 760px; }
+    table.heirs th {
+      text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px;
+      color: #5a6478; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; white-space: nowrap;
+    }
+    table.heirs td { padding: 5px 6px; border-bottom: 1px solid #f0f2f6; vertical-align: middle; }
+    table.heirs input, table.heirs select {
+      width: 100%; border: 1px solid transparent; border-radius: 6px;
+      padding: 5px 8px; font-size: 12.5px; font-family: inherit; background: transparent; color: #323338;
+    }
+    table.heirs input:hover, table.heirs select:hover { border-color: #e5e7eb; background: #fbfcfe; }
+    table.heirs input:focus, table.heirs select:focus { outline: none; border-color: #0176d3; background: #fff; }
+    table.heirs tr.heir-new { background: #f0f9ff; }
+    .heir-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .heir-foot .note { font-size: 11.5px; color: #94a3b8; }
+
+    .aigen {
+      background: linear-gradient(90deg,#f6f0ff,#fff); border: 1px solid #e2d4f8;
+      border-radius: 9px; padding: 10px 14px; font-size: 12.5px; color: #5b3f8f;
+      margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; padding: 10px 16px;
+      border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 99999;
+      transition: opacity .4s ease; box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .toast.ok  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .toast.err { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
   </style>
 </head>
 <body>
@@ -77,58 +236,892 @@
     <div class="panel-dealpath">
       <iframe id="frame-dealpath" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
     </div>
-    <div class="bottom-row">
-      <div class="panel-recordpage">
-        <iframe id="frame-recordpage" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+
+    <!-- Main tabs -->
+    <div class="maintabs" role="tablist" aria-label="Dashboard sections">
+      <button class="maintab" role="tab" id="mtab-deal" aria-selected="true" aria-controls="pane-deal" type="button">Deal Information</button>
+      <button class="maintab" role="tab" id="mtab-research" aria-selected="false" aria-controls="pane-research" type="button">Research<span class="new-badge">NEW</span></button>
+      <button class="maintab" role="tab" id="mtab-tree" aria-selected="false" aria-controls="pane-tree" type="button">Family Tree<span class="new-badge">NEW</span></button>
+      <button class="maintab" role="tab" id="mtab-aoh" aria-selected="false" aria-controls="pane-aoh" type="button">AOH<span class="new-badge">NEW</span></button>
+      <div class="save-indicator" id="saveIndicator"><span class="dot"></span><span class="lbl">—</span></div>
+    </div>
+
+    <!-- DEAL INFORMATION (existing layout, unchanged) -->
+    <div class="pane active" id="pane-deal" role="tabpanel" aria-labelledby="mtab-deal">
+      <div class="bottom-row">
+        <div class="panel-recordpage">
+          <iframe id="frame-recordpage" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+        </div>
+        <div class="panel-updates">
+          <iframe id="frame-updates" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+        </div>
       </div>
-      <div class="panel-updates">
-        <iframe id="frame-updates" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+      <div class="pane-inner" id="heirSlotDeal"></div>
+    </div>
+
+    <!-- RESEARCH -->
+    <div class="pane" id="pane-research" role="tabpanel" aria-labelledby="mtab-research">
+      <div class="pane-inner" id="researchRoot"></div>
+    </div>
+
+    <!-- FAMILY TREE -->
+    <div class="pane" id="pane-tree" role="tabpanel" aria-labelledby="mtab-tree">
+      <div class="pane-inner">
+        <div class="treewrap">
+          <div class="tree-loading" id="treeLoading">Loading family tree editor…</div>
+          <iframe id="frame-tree" title="Family tree editor" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+        </div>
+        <div class="treenote">Edits autosave to this item. Bloodline children flow into AOH §4 via “Build from tree” on the AOH tab.</div>
+        <div id="heirSlotTree" style="margin-top:14px"></div>
       </div>
+    </div>
+
+    <!-- AOH -->
+    <div class="pane" id="pane-aoh" role="tabpanel" aria-labelledby="mtab-aoh">
+      <div class="pane-inner" id="aohRoot"></div>
     </div>
   </div>
 
   <script>
+    "use strict";
+
+    /* ================================================================
+     *  CONFIG
+     * ================================================================ */
     const BASE = "https://ezlandusa.github.io/dpa-crm-embeds";
-    const CACHE_BUST = "v9";
+    const CACHE_BUST = "v10";
+    const TREE_ORIGIN = "https://propertyaidpartners.netlify.app";
+    const HEIR_SUBITEM_BOARD = "7886033852";
+
+    // n8n webhook contract. recordLoad already exists; the rest are the
+    // Phase-1 routes (built in n8n to these exact paths).
+    const N8N = "https://tphllc.app.n8n.cloud/webhook";
+    const WEBHOOKS = {
+      recordLoad: N8N + "/dpa-recordpage-load",   // existing — reused for tax account + heir subitems
+      blobSave:   N8N + "/dpa-blob-save",          // NEW: {itemId, taxAccount, treeV2, research, aoh, updatedAt}
+      blobLoad:   N8N + "/dpa-blob-load",          // NEW: {itemId, taxAccount} -> same object (taxAccount fallback lookup)
+      heirSave:   N8N + "/dpa-heir-save",          // NEW: {boardId, parentItemId, subitemBoardId, heirs:[...]}
+      aohDocx:    N8N + "/dpa-aoh-generate"        // NEW: {boardId, itemId, taxAccount, aoh} -> .docx into item Files
+    };
+
     const EMBEDS = {
       dealpath:   { frame: "frame-dealpath",   file: "dpa-dealpath.html" },
       recordpage: { frame: "frame-recordpage", file: "dpa-recordpage.html" },
       updates:    { frame: "frame-updates",    file: "dpa-updates.html" }
     };
 
-    function getUrlParam(name) {
-      return new URLSearchParams(window.location.search).get(name);
+    // Research checklist — keys/labels match the PAP Research Hub so the
+    // Phase-2 Firestore migration is a straight key-for-key copy.
+    const CHECKLIST = [
+      ["src_taxassessor", "Tax Assessor"],
+      ["src_cad",         "CAD"],
+      ["src_landrecords", "Land Records"],
+      ["src_docket",      "Docket"],
+      ["src_obit",        "Obituary"],
+      ["src_grave",       "Find A Grave"],
+      ["src_ancestry",    "Ancestry"],
+      ["src_ssdi",        "SSDI"],
+      ["src_skiptrace",   "Skip trace"]
+    ];
+    const CHAIN_TYPES = ["Deed", "Deed of Trust", "Foreclosure", "Probate", "Settlement", "Gap / Issue", "Other"];
+
+    // Real label sets from heir subitem board 7886033852 (columns: status, color_mm21aaws)
+    const HEIR_STATUS_OPTIONS = ["Not Contacted", "Ready to Dial", "Call for info", "In Contact", "No Answer", "Research", "Skiptrace", "Prepare Mail", "Mail Sent", "Not interested", "Defendant", "Relative", "Company", "Deceased owner", "Deceased Heir", "Tax - Assed Owner", "wrong person"];
+    const HEIR_ROLE_OPTIONS = ["Confirmed Owner/Heir", "Likely Heir", "Possible Owner", "Co-Owner", "Spouse", "Relative", "Deceased Owner", "Deceased Heir", "Contact/Dialing", "Attorney", "Executer", "Confirmed Executor", "Dependent Administrator", "Neighbor", "Current Resident", "Referral Partner", "Contact Lead", "Not an Owner", "Unknown", "Other"];
+
+    /* ================================================================
+     *  STATE
+     * ================================================================ */
+    function defaultResearch() {
+      const checklist = {};
+      CHECKLIST.forEach(([k]) => checklist[k] = false);
+      return {
+        checklist,
+        rs_summary: "", rs_propchar: "", rs_married: "", rs_rp: "", rs_rpdate: "",
+        rs_chainstatus: "", rs_missing: "",
+        rs_needsreview: "", rs_confidence: "", rs_blockers: "",
+        act_strategy: "",
+        chainEvents: []   // {date, type, event, desc, ref, link}
+      };
+    }
+    function defaultAoh() {
+      return {
+        s1: { name: "", maiden: "", dob: "", birthplace: "", dod: "", deathplace: "", residence: "" },
+        marriages: [],   // {spouse, mdate, mplace, edate, eplace}
+        s3: { probated: "", county: "", case: "", will: "", willadmit: "" },
+        children: [],    // {name, gender, dob, birthplace, mother, father, living, dod, deathplace, marital, grandchildren:[]}
+        section5: [],    // standalone grandchildren
+        section6: [],    // great-grandchildren
+        s7: { adopted: false, outside: false, missing: false, step: false, property: "", disputes: false },
+        s8: { name: "", contact: "", address: "", relationship: "", howlong: "", related: "", knowledge: "" },
+        witnesses: [],   // {name, address, phone, relationship}
+        s10_other: ""
+      };
     }
 
+    const state = {
+      boardId: "", itemId: "", taxAccount: "",
+      blob: { treeV2: null, research: defaultResearch(), aoh: defaultAoh(), updatedAt: null },
+      blobLoaded: false,
+      heirs: [],           // rows for the heir editor
+      heirsDirty: false
+    };
+
+    /* ================================================================
+     *  UTILS
+     * ================================================================ */
+    function getUrlParam(name) { return new URLSearchParams(window.location.search).get(name); }
+    function esc(str) {
+      return String(str ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    }
+    function el(tag, attrs = {}, ...children) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === "class") node.className = v;
+        else if (k === "text") node.textContent = v;
+        else if (k === "html") node.innerHTML = v;
+        else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+        else if (v !== null && v !== undefined) node.setAttribute(k, v);
+      }
+      for (const c of children) {
+        if (c === null || c === undefined) continue;
+        node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+      }
+      return node;
+    }
+    function debounce(fn, ms) {
+      let t = null;
+      const d = (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+      d.flush = (...args) => { clearTimeout(t); fn(...args); };
+      return d;
+    }
+    function toast(msg, type) {
+      const old = document.getElementById("dashToast");
+      if (old) old.remove();
+      const t = el("div", { id: "dashToast", class: "toast " + (type === "err" ? "err" : "ok"), text: msg });
+      document.body.appendChild(t);
+      setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 400); }, 3000);
+    }
+    let uidCounter = 0;
+    function uid() { return "u" + (++uidCounter); }
+
+    /* ================================================================
+     *  BLOB SAVE / LOAD
+     * ================================================================ */
+    const saveIndicator = document.getElementById("saveIndicator");
+    function setSaveState(cls, label) {
+      saveIndicator.className = "save-indicator state-" + cls;
+      saveIndicator.querySelector(".lbl").textContent = label;
+    }
+
+    const scheduleSave = debounce(saveBlob, 1200);
+    let saveFailures = 0;
+    function markDirty() {
+      if (!state.blobLoaded) return;   // never save over a blob we haven't loaded
+      saveFailures = 0;                // a fresh edit re-arms the retry budget
+      setSaveState("dirty", "Unsaved changes");
+      scheduleSave();
+    }
+
+    function blobPayload() {
+      return {
+        itemId: state.itemId,
+        taxAccount: state.taxAccount || "",
+        treeV2: state.blob.treeV2,
+        research: state.blob.research,
+        aoh: state.blob.aoh,
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    async function saveBlob() {
+      if (!state.blobLoaded || !state.itemId) return;
+      setSaveState("saving", "Saving…");
+      try {
+        const res = await fetch(WEBHOOKS.blobSave, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(blobPayload())
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        saveFailures = 0;
+        setSaveState("saved", "Saved");
+      } catch (err) {
+        console.error("[Dashboard] blob save failed:", err);
+        saveFailures++;
+        if (saveFailures < 3) {
+          setSaveState("error", "Save failed — retrying");
+          setTimeout(saveBlob, 3000 * saveFailures);
+        } else {
+          // Stop hammering a dead webhook; the next edit re-arms retries
+          setSaveState("error", "Save failed — will retry on next edit");
+        }
+      }
+    }
+
+    // Last-chance flush when the card is closed mid-edit
+    window.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden" && saveIndicator.className.includes("dirty")) {
+        try { navigator.sendBeacon(WEBHOOKS.blobSave, new Blob([JSON.stringify(blobPayload())], { type: "application/json" })); } catch (e) {}
+      }
+    });
+
+    async function loadBlob() {
+      try {
+        const res = await fetch(WEBHOOKS.blobLoad, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemId: state.itemId, taxAccount: state.taxAccount || "" })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        let data = await res.json();
+        if (Array.isArray(data)) data = data[0] || {};
+        if (data && typeof data === "object") {
+          if (data.treeV2 && typeof data.treeV2 === "object") state.blob.treeV2 = data.treeV2;
+          if (data.research && typeof data.research === "object") state.blob.research = Object.assign(defaultResearch(), data.research, { checklist: Object.assign(defaultResearch().checklist, data.research.checklist || {}) });
+          if (data.aoh && typeof data.aoh === "object") state.blob.aoh = Object.assign(defaultAoh(), data.aoh);
+          state.blob.updatedAt = data.updatedAt || null;
+        }
+        console.log("[Dashboard] blob loaded", state.blob.updatedAt ? "(updated " + state.blob.updatedAt + ")" : "(empty — new case)");
+      } catch (err) {
+        // 404 = webhook not built yet / no blob for this item — start blank either way
+        console.warn("[Dashboard] blob load unavailable, starting blank:", err.message);
+      }
+      state.blobLoaded = true;
+      setSaveState("saved", state.blob.updatedAt ? "Saved" : "New packet");
+    }
+
+    /* ================================================================
+     *  RECORD LOAD (existing webhook) — tax account + heir subitems
+     * ================================================================ */
+    async function loadRecordContext() {
+      try {
+        const res = await fetch(WEBHOOKS.recordLoad, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ boardId: state.boardId, pulseId: state.itemId })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        let data = await res.json();
+        if (Array.isArray(data)) data = data[0] || {};
+        state.taxAccount = String(data.tax_account ?? "").trim();
+
+        const subitems = Array.isArray(data.confirmed_owners) ? data.confirmed_owners : [];
+        state.heirs = subitems.map(c => ({
+          subitemId: (String(c.mondayUrl || "").match(/\/pulses\/(\d+)/) || [])[1] || "",
+          name: c.name || "",
+          relation: c.relationship || "",
+          ownershipPercent: String(c.ownershipPercent ?? c.ownership_percent ?? "").replace("%", "").trim(),
+          phone: c.phone || c.phone1 || "",
+          contactStatus: (c.leadStatus && c.leadStatus.text) || c.contactStatus || "",
+          contactRole: c.contactRole || c.owner_status || "",
+          _dirty: false, _new: false
+        }));
+        console.log("[Dashboard] record context: taxAccount=" + state.taxAccount + ", heirs=" + state.heirs.length);
+      } catch (err) {
+        console.warn("[Dashboard] record load failed (tax account / heirs unavailable):", err.message);
+      }
+    }
+
+    /* ================================================================
+     *  TABS
+     * ================================================================ */
+    const PANES = { "mtab-deal": "pane-deal", "mtab-research": "pane-research", "mtab-tree": "pane-tree", "mtab-aoh": "pane-aoh" };
+    document.querySelectorAll(".maintab").forEach(tab => {
+      tab.addEventListener("click", () => activateTab(tab.id));
+    });
+    function activateTab(tabId) {
+      document.querySelectorAll(".maintab").forEach(t => t.setAttribute("aria-selected", String(t.id === tabId)));
+      document.querySelectorAll(".pane").forEach(p => p.classList.toggle("active", p.id === PANES[tabId]));
+      if (tabId === "mtab-tree" || tabId === "mtab-aoh") ensureTreeFrame();
+      if (tabId === "mtab-tree") moveHeirDock("heirSlotTree");
+      if (tabId === "mtab-deal") moveHeirDock("heirSlotDeal");
+    }
+
+    /* ================================================================
+     *  FAMILY TREE BRIDGE (postMessage — protocol per the hub editor)
+     * ================================================================ */
+    let treeFrameRequested = false;
+    let treeReady = false;
+    let treeSeeded = false;
+    let pendingAohPull = false;
+
+    function ensureTreeFrame() {
+      if (treeFrameRequested) return;
+      treeFrameRequested = true;
+      document.getElementById("frame-tree").src = TREE_ORIGIN + "/family_tree.html?embed=1&_cb=" + CACHE_BUST;
+    }
+    function postToTree(msg) {
+      const frame = document.getElementById("frame-tree");
+      if (frame && frame.contentWindow) frame.contentWindow.postMessage(msg, TREE_ORIGIN);
+    }
+    function seedTreeIfReady() {
+      // Send pap-load exactly once, and only after BOTH the editor is ready
+      // and the blob has loaded (avoids clobbering a saved tree with null).
+      if (treeReady && state.blobLoaded && !treeSeeded) {
+        treeSeeded = true;
+        postToTree({ type: "pap-load", data: state.blob.treeV2 || null });
+        document.getElementById("treeLoading").style.display = "none";
+        if (pendingAohPull) { pendingAohPull = false; postToTree({ type: "pap-pull" }); }
+      }
+    }
+    window.addEventListener("message", (e) => {
+      if (e.origin !== TREE_ORIGIN) return;
+      const msg = e.data || {};
+      if (msg.type === "pap-ready") {
+        treeReady = true;
+        seedTreeIfReady();
+      } else if (msg.type === "pap-change") {
+        state.blob.treeV2 = msg.data;
+        markDirty();
+      } else if (msg.type === "pap-aoh") {
+        applyAohFromTree(msg.data);
+      }
+    });
+
+    /* ================================================================
+     *  FORM HELPERS
+     * ================================================================ */
+    function bindText(obj, key, input) {
+      input.value = obj[key] || "";
+      input.addEventListener("input", () => { obj[key] = input.value; markDirty(); });
+      return input;
+    }
+    function fld(labelText, inputEl) {
+      return el("div", { class: "fld" }, el("label", { text: labelText }), inputEl);
+    }
+    function textFld(obj, key, label, type = "text") {
+      return fld(label, bindText(obj, key, el("input", { type })));
+    }
+    function areaFld(obj, key, label, placeholder = "") {
+      return fld(label, bindText(obj, key, el("textarea", { placeholder })));
+    }
+    function selectFld(obj, key, label, options) {
+      const sel = el("select", {}, el("option", { value: "", text: "— Select —" }),
+        ...options.map(o => el("option", { value: o, text: o })));
+      sel.value = obj[key] || "";
+      sel.addEventListener("change", () => { obj[key] = sel.value; markDirty(); });
+      return fld(label, sel);
+    }
+    function radioFld(obj, key, label, options, onChange) {
+      const name = "r_" + key + "_" + uid();
+      const row = el("div", { class: "radio-row" });
+      options.forEach(opt => {
+        const input = el("input", { type: "radio", name, value: opt });
+        input.checked = obj[key] === opt;
+        input.addEventListener("change", () => { obj[key] = opt; markDirty(); if (onChange) onChange(opt); });
+        row.appendChild(el("label", { class: "opt" }, input, opt));
+      });
+      return el("div", { class: "fld" }, el("label", { text: label }), row);
+    }
+    function checkPill(obj, key, label) {
+      const pill = el("span", { class: "pill" + (obj[key] ? " on" : "") },
+        el("span", { class: "tick", text: "✓" }), label);
+      pill.addEventListener("click", () => {
+        obj[key] = !obj[key];
+        pill.classList.toggle("on", obj[key]);
+        markDirty();
+      });
+      return pill;
+    }
+
+    // Generic repeating-rows renderer. rowRender(item, index) -> element.
+    function renderRepeater(container, arr, makeBlank, rowRender, addLabel, emptyLabel) {
+      function rebuild() {
+        container.innerHTML = "";
+        if (!arr.length) container.appendChild(el("div", { class: "rep-empty", text: emptyLabel }));
+        arr.forEach((item, i) => {
+          const row = rowRender(item, i, () => { arr.splice(i, 1); markDirty(); rebuild(); });
+          container.appendChild(row);
+        });
+        container.appendChild(el("button", { class: "btn sm", type: "button", onclick: () => { arr.push(makeBlank()); markDirty(); rebuild(); } }, "＋ " + addLabel));
+      }
+      rebuild();
+      return { rebuild };
+    }
+    function removeBtn(onRemove) {
+      return el("button", { class: "btn sm ghost-danger rep-remove", type: "button", title: "Remove", onclick: onRemove }, "✕");
+    }
+    // Living YES/NO with conditional death fields
+    function livingBlock(item) {
+      const condWrap = el("div", { class: "grid2" },
+        textFld(item, "dod", "Date of Death"),
+        textFld(item, "deathplace", "City / County / State of Death"));
+      const sync = () => { condWrap.style.display = item.living === "NO" ? "" : "none"; };
+      const radios = radioFld(item, "living", "Living?", ["YES", "NO"], sync);
+      sync();
+      return el("div", {}, radios, condWrap);
+    }
+
+    /* ================================================================
+     *  RESEARCH TAB
+     * ================================================================ */
+    function renderResearch() {
+      const r = state.blob.research;
+      const root = document.getElementById("researchRoot");
+      root.innerHTML = "";
+
+      const left = el("div", {});
+      const right = el("div", {});
+
+      // Checklist
+      const pillRow = el("div", { class: "pill-row" }, ...CHECKLIST.map(([k, label]) => checkPill(r.checklist, k, label)));
+      left.appendChild(el("div", { class: "card" }, el("h5", { text: "✓ Research Checklist" }), pillRow));
+
+      // Summary / fact pattern
+      left.appendChild(el("div", { class: "card" }, el("h5", { text: "✎ Summary / Fact Pattern" }),
+        bindText(r, "rs_summary", Object.assign(el("textarea", { placeholder: "Deaths, vesting, suits, key facts…", style: "min-height:120px" }), {}))));
+
+      // Open questions / blockers + review flags
+      const qCard = el("div", { class: "card" }, el("h5", { text: "? Open Questions / Blockers" }),
+        areaFld(r, "rs_blockers", "Open questions / blockers for reviewer"),
+        el("div", { class: "grid2" },
+          selectFld(r, "rs_needsreview", "Needs human review?", ["No", "Yes"]),
+          selectFld(r, "rs_confidence", "Research confidence", ["High", "Medium", "Low"])));
+      left.appendChild(qCard);
+
+      // Deed / closing strategy
+      left.appendChild(el("div", { class: "card" }, el("h5", { text: "⚑ Deed / Closing Strategy" }),
+        areaFld(r, "act_strategy", "Strategy", "Target path (AOH, probate, quiet title…), acquisition order, risks")));
+
+      // Title chain
+      const chainCard = el("div", { class: "card" });
+      chainCard.appendChild(el("h5", { text: "⛓ Title Chain of Events" }));
+      chainCard.appendChild(el("div", { class: "grid3" },
+        selectFld(r, "rs_propchar", "Community or Separate?", ["Community", "Separate", "Unknown"]),
+        selectFld(r, "rs_married", "Married at purchase?", ["Yes", "No", "Unknown"]),
+        selectFld(r, "rs_chainstatus", "Title chain status", ["Clean", "Gap", "Break", "Needs curative work"])));
+      chainCard.appendChild(el("div", { class: "grid2" },
+        selectFld(r, "rs_rp", "RP number found?", ["Yes", "No"]),
+        textFld(r, "rs_rpdate", "RP date")));
+      const chainWrap = el("div", { class: "chain" });
+      chainCard.appendChild(chainWrap);
+      renderRepeater(chainWrap, r.chainEvents,
+        () => ({ date: "", type: "", event: "", desc: "", ref: "", link: "" }),
+        (ev, i, onRemove) => {
+          const row = el("div", { class: "rep-row chev" });
+          row.appendChild(removeBtn(onRemove));
+          row.appendChild(el("div", { class: "grid3" },
+            textFld(ev, "date", "Date"),
+            selectFld(ev, "type", "Type", CHAIN_TYPES),
+            textFld(ev, "ref", "Instrument / Vol / Page")));
+          row.appendChild(textFld(ev, "event", "Event"));
+          row.appendChild(el("div", { class: "grid2" },
+            areaFld(ev, "desc", "Description"),
+            textFld(ev, "link", "Document link")));
+          return row;
+        }, "Add event", "No chain events yet.");
+      chainCard.appendChild(areaFld(r, "rs_missing", "Missing / Needed Instruments"));
+      right.appendChild(chainCard);
+
+      root.appendChild(el("div", { class: "cards-2col" }, left, right));
+    }
+
+    /* ================================================================
+     *  AOH TAB
+     * ================================================================ */
+    function gcBlank() { return { name: "", dob: "", birthplace: "", parents: "", living: "", dod: "", deathplace: "", marital: "", kids: "" }; }
+    function childBlank() { return { name: "", gender: "", dob: "", birthplace: "", mother: "", father: "", living: "", dod: "", deathplace: "", marital: "", grandchildren: [] }; }
+
+    function renderAoh() {
+      const a = state.blob.aoh;
+      const root = document.getElementById("aohRoot");
+      root.innerHTML = "";
+
+      // Build-from-tree banner
+      root.appendChild(el("div", { class: "aigen" },
+        el("span", { text: "🌳 Pull the decedent + bloodline children straight from the Family Tree (matches by name, never deletes your entries)." }),
+        el("span", { style: "flex:1" }),
+        el("button", { class: "btn blue", type: "button", onclick: requestAohFromTree }, "⇄ Build from tree")));
+
+      // §1 Decedent
+      root.appendChild(el("div", { class: "card" }, el("h5", { text: "§1 Decedent Information" }),
+        el("div", { class: "grid3" },
+          textFld(a.s1, "name", "Full Legal Name"),
+          textFld(a.s1, "maiden", "Maiden Name"),
+          textFld(a.s1, "dob", "Date of Birth"),
+          textFld(a.s1, "birthplace", "City / County / State of Birth"),
+          textFld(a.s1, "dod", "Date of Death"),
+          textFld(a.s1, "deathplace", "City / County / State of Death")),
+        textFld(a.s1, "residence", "Last Known Residence")));
+
+      // §2 Marital history
+      const s2 = el("div", { class: "card" }, el("h5", { text: "§2 Decedent's Marital History" }));
+      const s2wrap = el("div", {}); s2.appendChild(s2wrap);
+      renderRepeater(s2wrap, a.marriages,
+        () => ({ spouse: "", mdate: "", mplace: "", edate: "", eplace: "" }),
+        (m, i, onRemove) => {
+          const row = el("div", { class: "rep-row" });
+          row.appendChild(removeBtn(onRemove));
+          row.appendChild(textFld(m, "spouse", "Spouse Full Name"));
+          row.appendChild(el("div", { class: "grid2" },
+            textFld(m, "mdate", "Date of Marriage"),
+            textFld(m, "mplace", "City / County / State of Marriage"),
+            textFld(m, "edate", "Date of Divorce or Spouse's Death"),
+            textFld(m, "eplace", "City / County / State of Divorce / Death")));
+          return row;
+        }, "Add marriage", "No marriages recorded.");
+      root.appendChild(s2);
+
+      // §3 Probate history
+      const s3CondWrap = el("div", {},
+        el("div", { class: "grid2" },
+          textFld(a.s3, "county", "County / State of Probate"),
+          textFld(a.s3, "case", "Case Number")),
+        radioFld(a.s3, "will", "Did the decedent leave a will?", ["YES", "NO", "UNKNOWN"]),
+        radioFld(a.s3, "willadmit", "Was the will admitted to probate?", ["YES", "NO", "UNKNOWN"]));
+      const syncS3 = () => { s3CondWrap.style.display = a.s3.probated === "YES" ? "" : "none"; };
+      const s3 = el("div", { class: "card" }, el("h5", { text: "§3 Decedent's Probate History" }),
+        radioFld(a.s3, "probated", "Was the decedent's estate ever probated?", ["YES", "NO", "UNKNOWN"], syncS3),
+        s3CondWrap);
+      syncS3();
+      root.appendChild(s3);
+
+      // §4 Children (with nested grandchildren)
+      const s4 = el("div", { class: "card" }, el("h5", { text: "§4 Children of Decedent" }));
+      const s4wrap = el("div", {}); s4.appendChild(s4wrap);
+      renderRepeater(s4wrap, a.children, childBlank,
+        (c, i, onRemove) => {
+          const row = el("div", { class: "rep-row" });
+          row.appendChild(removeBtn(onRemove));
+          row.appendChild(el("div", { class: "grid3" },
+            textFld(c, "name", "Full Legal Name"),
+            textFld(c, "gender", "Gender"),
+            textFld(c, "dob", "Date of Birth")));
+          row.appendChild(el("div", { class: "grid3" },
+            textFld(c, "birthplace", "City / County / State of Birth"),
+            textFld(c, "mother", "Mother (incl. maiden name)"),
+            textFld(c, "father", "Father")));
+          row.appendChild(livingBlock(c));
+          row.appendChild(areaFld(c, "marital", "Marital history"));
+          // Nested grandchildren for this child
+          const nested = el("div", { class: "rep-nested" }, el("div", { class: "nested-title", text: "Grandchildren through this child" }));
+          const nestedWrap = el("div", {}); nested.appendChild(nestedWrap);
+          if (!Array.isArray(c.grandchildren)) c.grandchildren = [];
+          renderRepeater(nestedWrap, c.grandchildren, gcBlank,
+            (g, gi, onRemoveG) => {
+              const grow = el("div", { class: "rep-row" });
+              grow.appendChild(removeBtn(onRemoveG));
+              grow.appendChild(el("div", { class: "grid3" },
+                textFld(g, "name", "Full Name"),
+                textFld(g, "dob", "Date of Birth"),
+                textFld(g, "parents", "Parents")));
+              grow.appendChild(livingBlock(g));
+              grow.appendChild(areaFld(g, "kids", "Their children (great-grandchildren) — name / DOB"));
+              return grow;
+            }, "Add grandchild", "None recorded.");
+          row.appendChild(nested);
+          return row;
+        }, "Add child", "No children recorded yet — use “Build from tree” or add manually.");
+      root.appendChild(s4);
+
+      // §5 Grandchildren (standalone)
+      const s5 = el("div", { class: "card" }, el("h5", { text: "§5 Grandchildren of Decedent" }));
+      const s5wrap = el("div", {}); s5.appendChild(s5wrap);
+      renderRepeater(s5wrap, a.section5, gcBlank,
+        (g, i, onRemove) => {
+          const row = el("div", { class: "rep-row" });
+          row.appendChild(removeBtn(onRemove));
+          row.appendChild(el("div", { class: "grid3" },
+            textFld(g, "name", "Full Name"),
+            textFld(g, "dob", "Date of Birth"),
+            textFld(g, "parents", "Parents")));
+          row.appendChild(textFld(g, "birthplace", "City / County / State of Birth"));
+          row.appendChild(livingBlock(g));
+          row.appendChild(el("div", { class: "grid2" },
+            areaFld(g, "marital", "Marital history"),
+            areaFld(g, "kids", "Their children — name / DOB")));
+          return row;
+        }, "Add grandchild", "Only needed when a child is deceased — heirs pass down a generation.");
+      root.appendChild(s5);
+
+      // §6 Great-grandchildren
+      const s6 = el("div", { class: "card" }, el("h5", { text: "§6 Great-Grandchildren of Decedent" }));
+      const s6wrap = el("div", {}); s6.appendChild(s6wrap);
+      renderRepeater(s6wrap, a.section6, gcBlank,
+        (g, i, onRemove) => {
+          const row = el("div", { class: "rep-row" });
+          row.appendChild(removeBtn(onRemove));
+          row.appendChild(el("div", { class: "grid3" },
+            textFld(g, "name", "Full Name"),
+            textFld(g, "dob", "Date of Birth"),
+            textFld(g, "parents", "Parents")));
+          row.appendChild(livingBlock(g));
+          row.appendChild(areaFld(g, "marital", "Marital history"));
+          return row;
+        }, "Add great-grandchild", "Only needed when a grandchild is deceased.");
+      root.appendChild(s6);
+
+      // §7 Additional heirship facts
+      const s7pills = el("div", { class: "pill-row" },
+        checkPill(a.s7, "adopted", "Adopted children"),
+        checkPill(a.s7, "outside", "Children outside of marriage"),
+        checkPill(a.s7, "missing", "Heirs missing / unknown / estranged"),
+        checkPill(a.s7, "step", "Raised stepchildren"),
+        checkPill(a.s7, "disputes", "Known disputes between heirs"));
+      root.appendChild(el("div", { class: "card" }, el("h5", { text: "§7 Additional Heirship Facts" }),
+        s7pills,
+        el("div", { style: "margin-top:10px" }, selectFld(a.s7, "property", "Was the property community or separate?", ["Community", "Separate", "Unknown"]))));
+
+      // §8 Affiant
+      root.appendChild(el("div", { class: "card" }, el("h5", { text: "§8 Affiant Information" }),
+        el("div", { class: "grid3" },
+          textFld(a.s8, "name", "Full Name"),
+          textFld(a.s8, "contact", "Phone / Email"),
+          textFld(a.s8, "address", "Address"),
+          textFld(a.s8, "relationship", "Relationship to Decedent"),
+          textFld(a.s8, "howlong", "How long did affiant know the decedent?")),
+        el("div", { class: "grid2" },
+          radioFld(a.s8, "related", "Is affiant related to the decedent?", ["YES", "NO"]),
+          radioFld(a.s8, "knowledge", "Personal knowledge of this family?", ["YES", "NO"]))));
+
+      // §9 Witnesses
+      const s9 = el("div", { class: "card" }, el("h5", { text: "§9 Disinterested Witnesses" }));
+      const s9wrap = el("div", {}); s9.appendChild(s9wrap);
+      renderRepeater(s9wrap, a.witnesses,
+        () => ({ name: "", address: "", phone: "", relationship: "" }),
+        (w, i, onRemove) => {
+          const row = el("div", { class: "rep-row" });
+          row.appendChild(removeBtn(onRemove));
+          row.appendChild(el("div", { class: "grid2" },
+            textFld(w, "name", "Full Name"),
+            textFld(w, "phone", "Phone"),
+            textFld(w, "address", "Address"),
+            textFld(w, "relationship", "Relationship to Decedent (must be NONE)")));
+          return row;
+        }, "Add witness", "Two disinterested witnesses are required.");
+      root.appendChild(s9);
+
+      // §10 Other
+      root.appendChild(el("div", { class: "card" }, el("h5", { text: "§10 Any Other Relevant Information" }),
+        areaFld(a, "s10_other", "Additional information")));
+
+      // Generate
+      const genBtn = el("button", { class: "btn gold", type: "button" }, "Generate AOH .docx → Files tab");
+      genBtn.addEventListener("click", () => generateAohDocx(genBtn));
+      root.appendChild(el("div", { style: "display:flex;justify-content:flex-end;gap:10px;margin:4px 0 20px" }, genBtn));
+    }
+
+    function requestAohFromTree() {
+      if (!treeSeeded) {
+        pendingAohPull = true;
+        ensureTreeFrame();
+        toast("Loading tree editor first — one moment…", "ok");
+        return;
+      }
+      postToTree({ type: "pap-pull" });
+    }
+
+    // Merge computeAOH() result into the AOH form. Matches by name
+    // (case-insensitive); never removes manually entered rows.
+    function applyAohFromTree(result) {
+      if (!result || result.error) {
+        toast(result && result.error ? result.error : "Tree returned no data — mark someone as the decedent first.", "err");
+        return;
+      }
+      const a = state.blob.aoh;
+      const norm = s => String(s || "").trim().toLowerCase();
+
+      if (result.decedent) {
+        if (!a.s1.name) a.s1.name = result.decedent.name || "";
+        if (!a.s1.dob) a.s1.dob = result.decedent.dob || "";
+        if (!a.s1.dod) a.s1.dod = result.decedent.dod || "";
+      }
+      let added = 0, updated = 0;
+      (result.tree || []).forEach(entry => {
+        const node = entry.node || {};
+        let child = a.children.find(c => norm(c.name) === norm(node.name));
+        if (!child) { child = childBlank(); child.name = node.name || ""; a.children.push(child); added++; }
+        else updated++;
+        if (!child.dob) child.dob = node.dob || "";
+        if (node.status === "deceased") { child.living = "NO"; if (!child.dod) child.dod = node.dod || ""; }
+        else if (node.status === "living" && !child.living) child.living = "YES";
+        if (!child.marital && node.marriage) child.marital = node.marriage;
+        (entry.children || []).forEach(gEntry => {
+          const gNode = gEntry.node || {};
+          if (!Array.isArray(child.grandchildren)) child.grandchildren = [];
+          let gc = child.grandchildren.find(g => norm(g.name) === norm(gNode.name));
+          if (!gc) { gc = gcBlank(); gc.name = gNode.name || ""; gc.parents = node.name || ""; child.grandchildren.push(gc); }
+          if (!gc.dob) gc.dob = gNode.dob || "";
+          if (gNode.status === "deceased") { gc.living = "NO"; if (!gc.dod) gc.dod = gNode.dod || ""; }
+          else if (gNode.status === "living" && !gc.living) gc.living = "YES";
+          const ggc = (gEntry.children || []).map(x => (x.node && x.node.name) || "").filter(Boolean);
+          if (ggc.length && !gc.kids) gc.kids = ggc.join("\n");
+        });
+      });
+      if (result.warnings && result.warnings.length) console.warn("[Dashboard] tree AOH warnings:", result.warnings);
+      markDirty();
+      renderAoh();
+      activateTab("mtab-aoh");
+      toast(`Pulled from tree — ${added} added, ${updated} matched.`, "ok");
+    }
+
+    async function generateAohDocx(btn) {
+      btn.disabled = true;
+      const prev = btn.textContent;
+      btn.textContent = "Generating…";
+      try {
+        // Make sure the latest edits ride along
+        scheduleSave.flush();
+        const res = await fetch(WEBHOOKS.aohDocx, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boardId: state.boardId, itemId: state.itemId,
+            taxAccount: state.taxAccount || "",
+            aoh: state.blob.aoh,
+            summary: state.blob.research.rs_summary || ""
+          })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        toast("AOH generation started — the .docx lands in this item's Files tab.", "ok");
+      } catch (err) {
+        console.error("[Dashboard] AOH generate failed:", err);
+        toast("AOH generate failed — is the n8n route live yet?", "err");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = prev;
+      }
+    }
+
+    /* ================================================================
+     *  HEIR SUBITEM EDITOR (single dock, moves between panes)
+     * ================================================================ */
+    const heirDock = el("div", { class: "card", id: "heirDock" });
+    function moveHeirDock(slotId) {
+      const slot = document.getElementById(slotId);
+      if (slot && heirDock.parentElement !== slot) slot.appendChild(heirDock);
+    }
+
+    function heirBlank() {
+      return { subitemId: "", name: "", relation: "", ownershipPercent: "", phone: "", contactStatus: "", contactRole: "", _dirty: true, _new: true };
+    }
+
+    function renderHeirs() {
+      heirDock.innerHTML = "";
+      const saveBtn = el("button", { class: "btn blue sm", type: "button", onclick: saveHeirs }, "Save heirs");
+      heirDock.appendChild(el("h5", {},
+        "👥 Heir Subitems",
+        el("span", { class: "spacer" }),
+        el("button", { class: "btn sm", type: "button", onclick: () => { state.heirs.push(heirBlank()); state.heirsDirty = true; renderHeirs(); } }, "＋ Add heir"),
+        saveBtn));
+
+      const table = el("table", { class: "heirs" });
+      table.appendChild(el("thead", {}, el("tr", {},
+        el("th", { text: "Name" }), el("th", { text: "Relation" }), el("th", { text: "Ownership %" }),
+        el("th", { text: "Phone" }), el("th", { text: "Contact Status" }), el("th", { text: "Contact Role" }))));
+      const tbody = el("tbody", {});
+
+      if (!state.heirs.length) {
+        tbody.appendChild(el("tr", {}, el("td", { colspan: "6", style: "color:#94a3b8;font-size:12.5px;padding:10px 8px", text: "No heir subitems yet — add one, or sync from research." })));
+      }
+      state.heirs.forEach(h => {
+        const tr = el("tr", { class: h._new ? "heir-new" : "" });
+        const cell = (input) => el("td", {}, input);
+        const bind = (key, input) => {
+          input.value = h[key] || "";
+          input.addEventListener("input", () => { h[key] = input.value; h._dirty = true; state.heirsDirty = true; });
+          input.addEventListener("change", () => { h[key] = input.value; h._dirty = true; state.heirsDirty = true; });
+          return input;
+        };
+        const selectOf = (key, options) => {
+          const sel = el("select", {}, el("option", { value: "", text: "—" }),
+            ...options.map(o => el("option", { value: o, text: o })));
+          if (h[key] && !options.includes(h[key])) sel.appendChild(el("option", { value: h[key], text: h[key] }));
+          return bind(key, sel);
+        };
+        tr.appendChild(cell(bind("name", el("input", { type: "text", placeholder: "Full name" }))));
+        tr.appendChild(cell(bind("relation", el("input", { type: "text", placeholder: "daughter, nephew…" }))));
+        tr.appendChild(cell(bind("ownershipPercent", el("input", { type: "text", placeholder: "33.3" }))));
+        tr.appendChild(cell(bind("phone", el("input", { type: "tel", placeholder: "(713) 555-0000" }))));
+        tr.appendChild(cell(selectOf("contactStatus", HEIR_STATUS_OPTIONS)));
+        tr.appendChild(cell(selectOf("contactRole", HEIR_ROLE_OPTIONS)));
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      heirDock.appendChild(el("div", { class: "heir-table-wrap" }, table));
+      heirDock.appendChild(el("div", { class: "heir-foot" },
+        el("span", { class: "note", text: "Saves to subitem board " + HEIR_SUBITEM_BOARD + " through n8n — existing heirs are matched by name (no duplicates)." })));
+    }
+
+    async function saveHeirs() {
+      const dirty = state.heirs.filter(h => h._dirty && String(h.name || "").trim());
+      if (!dirty.length) { toast("No heir changes to save.", "ok"); return; }
+      try {
+        const res = await fetch(WEBHOOKS.heirSave, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boardId: state.boardId,
+            parentItemId: state.itemId,
+            subitemBoardId: HEIR_SUBITEM_BOARD,
+            heirs: dirty.map(h => ({
+              subitemId: h.subitemId || null,
+              name: String(h.name || "").trim(),
+              relation: h.relation || "",
+              ownershipPercent: h.ownershipPercent || "",
+              phone: h.phone || "",
+              contactStatus: h.contactStatus || "",
+              contactRole: h.contactRole || ""
+            }))
+          })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        dirty.forEach(h => { h._dirty = false; h._new = false; });
+        state.heirsDirty = false;
+        renderHeirs();
+        toast(`Saved ${dirty.length} heir${dirty.length > 1 ? "s" : ""} to Monday.`, "ok");
+        // Re-pull so new subitem IDs come back
+        loadRecordContext().then(renderHeirs);
+      } catch (err) {
+        console.error("[Dashboard] heir save failed:", err);
+        toast("Heir save failed — is the n8n route live yet?", "err");
+      }
+    }
+
+    /* ================================================================
+     *  BOOT
+     * ================================================================ */
     function loadEmbeds(boardId, itemId) {
       const params = new URLSearchParams();
       if (boardId) { params.set("boardId", boardId); params.set("board_id", boardId); }
       if (itemId)  { params.set("itemId", itemId); params.set("item_id", itemId); params.set("pulseId", itemId); }
-
-      for (const [key, cfg] of Object.entries(EMBEDS)) {
+      for (const cfg of Object.values(EMBEDS)) {
         const iframe = document.getElementById(cfg.frame);
-        if (iframe) {
-          iframe.src = `${BASE}/${cfg.file}?_cb=${CACHE_BUST}&${params.toString()}`;
-        }
+        if (iframe) iframe.src = `${BASE}/${cfg.file}?_cb=${CACHE_BUST}&${params.toString()}`;
       }
-
       document.getElementById("loading").style.display = "none";
       document.getElementById("dashboard").classList.add("visible");
     }
 
     function showError(msg) {
-      const el = document.getElementById("loading");
-      el.innerHTML = `<div class="error">${msg}</div>`;
+      document.getElementById("loading").innerHTML = `<div class="error">${esc(msg)}</div>`;
     }
 
-    // --- Resolve IDs: Monday SDK first, then URL params ---
+    async function boot(boardId, itemId) {
+      state.boardId = String(boardId || "");
+      state.itemId = String(itemId || "");
+      loadEmbeds(state.boardId, state.itemId);
+      moveHeirDock("heirSlotDeal");
+      renderHeirs();
+
+      // Tax account first (blob LOAD uses it as the fallback key), then blob
+      await loadRecordContext();
+      renderHeirs();
+      await loadBlob();
+      renderResearch();
+      renderAoh();
+      seedTreeIfReady();
+    }
+
     (function init() {
       let boardId = getUrlParam("boardId") || getUrlParam("board_id") || "";
       let itemId  = getUrlParam("itemId")  || getUrlParam("item_id")  || getUrlParam("pulseId") || "";
 
       if (itemId) {
         console.log("[Dashboard] IDs from URL:", { boardId, itemId });
-        loadEmbeds(boardId, itemId);
+        boot(boardId, itemId);
         return;
       }
 
@@ -138,20 +1131,17 @@
           const timeout = setTimeout(() => {
             showError("Could not get item context from Monday.com. Make sure this view is added to an item.");
           }, 5000);
-
           monday.listen("context", (res) => {
             clearTimeout(timeout);
             const ctx = res.data || {};
             boardId = boardId || String(ctx.boardId || ctx.boardIds?.[0] || "");
             itemId  = itemId  || String(ctx.itemId  || ctx.pulseId || "");
-
             console.log("[Dashboard] IDs from Monday SDK:", { boardId, itemId });
-
             if (!itemId) {
               showError("No item ID found. Open this view from within a Monday.com item.");
               return;
             }
-            loadEmbeds(boardId, itemId);
+            boot(boardId, itemId);
           });
         } catch (e) {
           console.error("[Dashboard] Monday SDK error:", e);

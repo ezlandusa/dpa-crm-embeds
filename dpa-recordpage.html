@@ -2202,10 +2202,16 @@
       "county": ["Montgomery", "Brazoria", "Grimes", "Harris", "San Jacinto", "Fort Bend", "Walker", "Galveston", "Waller", "Bexar", "Fort Worth", "Liberty"],
       "title_issue": ["Tax Lien(s)", "No Issues", "Heirship Affidavit Needed", "Probate Required", "Judgment Lien", "HOA Lien", "Clouded Title", "Missing/Defective Deed", "Unreleased Mortgage", "Lis Pendens", "Multiple Ownership Claims", "Boundary/Survey Dispute", "Missing/Unreachable Owner", "Divorce/Community Property", "Tax Sale Pending"],
       "deed_status": ["Not Started", "In Progress", "Pending Recording", "Recorded", "Filed"],
-      "will_status": ["Working on it", "Done", "Stuck"],
+      "will_status": ["No Will (Intestate)", "Will - Not Probated", "Will — In Probate", "Will — Fully Probated", "Living Owner / N/A", "Unknown"],
       "cca_status": ["CCA 1", "CCA 2", "CCA 3", "CCA 4", "CCA 5", "CCA 6", "CCA 7", "CCA 8", "CCA 9", "CCA 10", "EXHAUSTED"],
       "condition": ["Good", "Fair", "Distressed", "Heavily Distressed", "Vacant / Land", "Tear-Down"]
     };
+
+    // Fields backed by Monday link-type columns — saved as {url, text}
+    const LINK_FIELDS = new Set([
+      "obituary_link", "ancestry_link", "zillow_link",
+      "tax_assessor_link", "google_maps_link", "cad_link"
+    ]);
 
     // Per-board column ID maps — data-field → Monday.com column ID
     // Each board has different column IDs for the same logical fields
@@ -2582,7 +2588,14 @@
           valueText.style.display = "";
           pencil.style.display = "";
           if (newValue !== (oldValue.replace(/[^0-9]/g, "") || "—")) {
-            await saveToMonday(fieldKey, newValue === "—" ? "" : newValue);
+            let saveValue = newValue === "—" ? "" : newValue;
+            // Link columns expect Monday's {url, text} object, not a plain string
+            if (LINK_FIELDS.has(fieldKey) && saveValue) {
+              let url = saveValue;
+              if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+              saveValue = { url, text: url };
+            }
+            await saveToMonday(fieldKey, saveValue);
             showSaveToast("success");
           }
         };
