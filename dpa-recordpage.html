@@ -1854,6 +1854,13 @@
           if (snap && payload[field]) snap.textContent = formatCurrency(payload[field]);
         });
 
+        // Ratio formula is numeric on the board now (so views can filter
+        // greater-than) — re-append the % for display only
+        const ratioEl = document.querySelector('.field[data-field="value_to_tax_ratio"] .value-text');
+        if (ratioEl && payload.value_to_tax_ratio && !String(payload.value_to_tax_ratio).includes("%")) {
+          ratioEl.textContent = String(payload.value_to_tax_ratio) + "%";
+        }
+
         // ── Deal Insight metrics computed from confirmed_owners ──────────────
         const owners = Array.isArray(payload.confirmed_owners) ? payload.confirmed_owners : [];
 
