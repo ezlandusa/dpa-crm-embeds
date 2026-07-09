@@ -1123,6 +1123,19 @@
                       </span>
                     </div>
                   </div>
+
+                  <div class="field" data-field="taxes_owed">
+                    <div class="label">Tax Balance Due</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -2284,6 +2297,20 @@
       "tax_assessor_link", "google_maps_link", "cad_link"
     ]);
 
+    // Fields backed by Monday date columns — edited with a real date picker
+    // and saved as YYYY-MM-DD (free text like "Jul 9, 2026" gets rejected by
+    // Monday and used to fail silently — the 0/3,847 date-fills bug)
+    const DATE_FIELDS = new Set([
+      "last_contact_date", "follow_up_date", "last_payment_date",
+      "cca_started_date", "birth_date", "death_date"
+    ]);
+
+    // Fields backed by Monday number columns — strip $ and commas before save
+    const NUMBER_FIELDS = new Set([
+      "taxes_owed", "appraisal", "land_value", "improvement_value",
+      "years_delinquent", "lead_score", "lot_size"
+    ]);
+
     // Per-board column ID maps — data-field → Monday.com column ID
     // Each board has different column IDs for the same logical fields
     const BOARD_COLUMN_MAPS = {
@@ -2488,10 +2515,19 @@
           body: JSON.stringify({ boardId, pulseId, columnId, value: newValue })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        console.log(`✓ Saved ${fieldKey} → ${newValue}`);
+        // The webhook returns 200 even when Monday rejects the value —
+        // check the body, or bad saves fail silently (the 0-date-fills bug)
+        const result = await res.json().catch(() => null);
+        const r = Array.isArray(result) ? result[0] : result;
+        if (r && r.success === false) {
+          throw new Error(r.errors?.[0]?.message || "Monday rejected the value");
+        }
+        console.log(`✓ Saved ${fieldKey} →`, newValue);
+        return true;
       } catch (err) {
         console.error(`✗ Failed to save ${fieldKey}:`, err);
         showSaveToast("error");
+        return false;
       }
     }
 
@@ -2567,7 +2603,18 @@
         // to Monday dropdown-type columns, which accept {labels:[...]} on save.
         const MULTI_SELECT_FIELDS = new Set(["title_issue"]);
 
-        if (NUMERIC_FIELDS[fieldKey]) {
+        if (DATE_FIELDS.has(fieldKey)) {
+          // Real date picker — value is always YYYY-MM-DD, which is the only
+          // format Monday date columns accept
+          inputEl = document.createElement("input");
+          inputEl.type = "date";
+          inputEl.className = "inline-input";
+          const parsed = parseFlexibleDate(oldValue);
+          if (parsed) {
+            const pad = n => String(n).padStart(2, "0");
+            inputEl.value = `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
+          }
+        } else if (NUMERIC_FIELDS[fieldKey]) {
           // Number input for numeric fields (e.g., condition 0-100)
           const cfg = NUMERIC_FIELDS[fieldKey];
           inputEl = document.createElement("input");
@@ -2667,8 +2714,8 @@
             const newSet = new Set(checked);
             const changed = oldSet.size !== newSet.size || Array.from(oldSet).some(v => !newSet.has(v));
             if (changed) {
-              await saveToMonday(fieldKey, checked);
-              showSaveToast("success");
+              const ok = await saveToMonday(fieldKey, checked);
+              if (ok) showSaveToast("success");
             }
             return;
           }
@@ -2698,8 +2745,12 @@
               if (!/^https?:\/\//i.test(url)) url = "https://" + url;
               saveValue = { url, text: url };
             }
-            await saveToMonday(fieldKey, saveValue);
-            showSaveToast("success");
+            // Number columns reject "$8,500"-style input — strip to digits
+            if (NUMBER_FIELDS.has(fieldKey) && saveValue) {
+              saveValue = String(saveValue).replace(/[^0-9.\-]/g, "");
+            }
+            const ok = await saveToMonday(fieldKey, saveValue);
+            if (ok) showSaveToast("success");
           }
         };
 
