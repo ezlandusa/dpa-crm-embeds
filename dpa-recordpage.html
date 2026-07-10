@@ -2293,7 +2293,7 @@
       "title_issue": ["Tax Lien(s)", "No Issues", "Heirship Affidavit Needed", "Probate Required", "Judgment Lien", "HOA Lien", "Clouded Title", "Missing/Defective Deed", "Unreleased Mortgage", "Lis Pendens", "Multiple Ownership Claims", "Boundary/Survey Dispute", "Missing/Unreachable Owner", "Divorce/Community Property", "Tax Sale Pending"],
       "deed_status": ["Not Started", "In Progress", "Pending Recording", "Recorded", "Filed"],
       "will_status": ["No Will (Intestate)", "Will - Not Probated", "Will — In Probate", "Will — Fully Probated", "Living Owner / N/A", "Unknown"],
-      "probate_status": ["Not Researched", "No Probate Found", "Probate Filed", "In Probate", "Fully Probated"],
+      "probate_status": ["Not Researched", "No Probate Found", "Confirmed None - Family", "Probate Filed", "In Probate", "Fully Probated"],
       "cca_status": ["CCA 1", "CCA 2", "CCA 3", "CCA 4", "CCA 5", "CCA 6", "CCA 7", "CCA 8", "CCA 9", "CCA 10", "EXHAUSTED"],
       "condition": ["Good", "Fair", "Distressed", "Heavily Distressed", "Vacant / Land", "Tear-Down"]
     };
@@ -2353,9 +2353,10 @@
         "last_contact_date":  "date_mm1cwn6k",
         "pipeline_stage":     "color_mm1c7yw1",
         "obituary_link":      "link_mm1rbthv",
-        "ancestry_link":      "link_mm1rwdx0",
-        "zillow_link":        "link_mm20kj8a",
-        "tax_assessor_link":  "link_mm20wtt1",
+        // ancestry_link / zillow_link / tax_assessor_link columns were
+        // DELETED from Prospecting (Alan's CRM spec 2026-07-10) — no mapping,
+        // so edits on this board no-op instead of erroring. Other boards
+        // still have these columns and keep their mappings.
         "google_maps_link":   "link_mm1dwgsf",
         "deceased_owner":     "text_mkkmry1b",
         "cad_link":           "link",
