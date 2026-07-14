@@ -907,6 +907,19 @@
       color: #dc2626;
     }
 
+    /* ---------- PHONE ROWS / INLINE HEIR EDITING ---------- */
+    .phone-row{ display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap; }
+    .phone-link{ font-weight:500; color:#0176d3; text-decoration:none; font-size:14px; white-space:nowrap; }
+    .phone-link:hover{ text-decoration:underline; }
+    .phone-meta{ font-size:11.5px; color:#9ca3af; white-space:nowrap; }
+    .phone-note{ font-size:11.5px; color:#b45309; background:#fef3c7; border-radius:4px; padding:1px 6px; }
+    .pbtn{ border:1px solid #d1d5db; background:#fff; border-radius:4px; font-size:11px; line-height:1; padding:3px 5px; cursor:pointer; color:#6b7280; }
+    .pbtn:hover{ background:#f3f4f6; color:#111827; }
+    .phone-tag{ font-size:11px; padding:2px 3px; border:1px solid #e5e7eb; border-radius:4px; color:#6b7280; cursor:pointer; max-width:96px; }
+    .mirror-tag{ font-size:10px; color:#9ca3af; font-weight:500; margin-left:6px; letter-spacing:.02em; text-transform:none; }
+    .research-intro{ margin:12px 14px 0; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e40af; font-size:13.5px; }
+    .step-hint{ font-size:12.5px; color:#9ca3af; font-style:italic; padding:6px 0; line-height:1.5; }
+
     /* ---------- RELATED CONTACTS SUMMARY ---------- */
     .section-head .section-meta{
       font-size: 14px;
@@ -943,8 +956,8 @@
 
               <div class="snapshotFields">
                 <div class="sfield">
-                  <div class="slabel">Deceased Owner</div>
-                  <div class="svalue" data-snapshot="true" data-field="deceased_owner">—</div>
+                  <div class="slabel">Value-to-Tax Ratio</div>
+                  <div class="svalue" data-snapshot="true" data-field="value_to_tax_ratio">—</div>
                 </div>
 
                 <div class="sfield">
@@ -1004,8 +1017,6 @@
           <div class="tabs" role="tablist" aria-label="Record Tabs">
             <button class="tab" role="tab" id="tab-deal" aria-selected="true" aria-controls="pane-deal" type="button">Deal Information</button>
             <button class="tab" role="tab" id="tab-research" aria-selected="false" aria-controls="pane-research" type="button">Research</button>
-            <button class="tab" role="tab" id="tab-activity" aria-selected="false" aria-controls="pane-activity" type="button">Activity</button>
-            <button class="tab" role="tab" id="tab-milestones" aria-selected="false" aria-controls="pane-milestones" type="button">Milestones</button>
           </div>
 
           <div class="tabs-actions">
@@ -1025,10 +1036,10 @@
           <!-- DEAL INFO -->
           <div class="tab-pane active" id="pane-deal" role="tabpanel" aria-labelledby="tab-deal">
 
-            <!-- Property Details Section -->
+            <!-- Deal Information — Alan's 2026-07-13 field list -->
             <div class="section">
               <div class="section-head">
-                <div><h3>Property Details</h3></div>
+                <div><h3>Deal Information</h3></div>
               </div>
 
               <div class="field-grid">
@@ -1045,7 +1056,18 @@
                       </span>
                     </div>
                   </div>
-
+                  <div class="field" data-field="tier">
+                    <div class="label">Tier</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
                   <div class="field" data-field="tax_status">
                     <div class="label">Tax Status</div>
                     <div class="value">
@@ -1058,7 +1080,6 @@
                       </span>
                     </div>
                   </div>
-
                   <div class="field" data-field="occupancy">
                     <div class="label">Occupancy</div>
                     <div class="value">
@@ -1071,9 +1092,8 @@
                       </span>
                     </div>
                   </div>
-
-                  <div class="field" data-field="days_of_inactivity">
-                    <div class="label">Days of Inactivity</div>
+                  <div class="field" data-field="condition">
+                    <div class="label">Condition</div>
                     <div class="value">
                       <span class="value-text" data-editable="true">—</span>
                       <span class="edit" title="Edit">
@@ -1084,7 +1104,9 @@
                       </span>
                     </div>
                   </div>
+                </div>
 
+                <div>
                   <div class="field" data-field="tax_account">
                     <div class="label">Tax Account #</div>
                     <div class="value">
@@ -1097,7 +1119,6 @@
                       </span>
                     </div>
                   </div>
-
                   <div class="field" data-field="county">
                     <div class="label">County</div>
                     <div class="value">
@@ -1110,20 +1131,6 @@
                       </span>
                     </div>
                   </div>
-
-                  <div class="field" data-field="case_number">
-                    <div class="label">Case Number</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
                   <div class="field" data-field="taxes_owed">
                     <div class="label">Tax Balance Due</div>
                     <div class="value">
@@ -1136,11 +1143,38 @@
                       </span>
                     </div>
                   </div>
+                  <div class="field" data-field="value_to_tax_ratio">
+                    <div class="label">Value-to-Tax Ratio</div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="as_is_value">
+                    <div class="label">EST AS-IS Value <span class="mirror-tag">mirrored from Deal Metrics</span></div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="gross_spread">
+                    <div class="label">EST Gross Spread <span class="mirror-tag">mirrored from Deal Metrics</span></div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            </div>
 
+            <!-- Update Activity — moved up per Alan (more accessible) -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>Update Activity</h3></div>
+              </div>
+
+              <div class="field-grid">
                 <div>
-                  <div class="field" data-field="total_equity">
-                    <div class="label">Equity</div>
+                  <div class="field" data-field="next_action_step">
+                    <div class="label">Next Action Step</div>
                     <div class="value">
                       <span class="value-text" data-editable="true">—</span>
                       <span class="edit" title="Edit">
@@ -1151,7 +1185,245 @@
                       </span>
                     </div>
                   </div>
+                  <div class="field" data-field="follow_up_date">
+                    <div class="label">Follow-up Date</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="days_of_inactivity">
+                    <div class="label">Days of Inactivity</div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="stalled_reason">
+                    <div class="label">Stalled Reason</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
+                <div>
+                  <div class="field" data-field="last_contacted">
+                    <div class="label">Last Contacted</div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="activity_notes">
+                    <div class="label">Latest Update</div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="cca_status">
+                    <div class="label">CCA Status</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="cca_started_date">
+                    <div class="label">CCA Started Date</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="hail_mary_method">
+                    <div class="label">Hail Mary Method</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Deal Metrics — valuation source fields -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>Deal Metrics</h3></div>
+              </div>
+
+              <div class="field-grid">
+                <div>
+                  <div class="field" data-field="land_value">
+                    <div class="label">Land Value</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="improvement_value">
+                    <div class="label">Improvement Value</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="appraisal">
+                    <div class="label">Appraised Value</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="field" data-field="as_is_value">
+                    <div class="label">EST AS-IS Value</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="gross_spread">
+                    <div class="label">EST Gross Spread</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Heirs & Related Contacts -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>Heirs &amp; Related Contacts</h3></div>
+                <div class="section-meta" id="contactsSummary">—</div>
+              </div>
+
+              <!-- Sub-tabs for Confirmed Owners vs Other Contacts -->
+              <div class="sub-tabs-bar" role="tablist" aria-label="Contact Tabs">
+                <button class="sub-tab" role="tab" id="subtab-confirmed" aria-selected="true" aria-controls="subpane-confirmed" type="button">Confirmed Owners</button>
+                <button class="sub-tab" role="tab" id="subtab-other" aria-selected="false" aria-controls="subpane-other" type="button">Other Related Contacts</button>
+              </div>
+
+              <div class="sub-tab-pane active" id="subpane-confirmed" role="tabpanel" aria-labelledby="subtab-confirmed">
+                <div class="table-wrap">
+                  <table aria-label="Confirmed Owners Table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Phones</th>
+                        <th>Notes</th>
+                        <th>Next Follow-up</th>
+                        <th>Quick Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="confirmedOwnersTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="sub-tab-pane" id="subpane-other" role="tabpanel" aria-labelledby="subtab-other">
+                <div class="table-wrap">
+                  <table aria-label="Other Related Contacts Table" id="otherContactsTable">
+                    <thead id="otherContactsHead">
+                      <tr>
+                        <th>Name</th>
+                        <th>Relation</th>
+                        <th>Status</th>
+                        <th>Phones</th>
+                        <th>Notes</th>
+                        <th>Quick Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="otherContactsTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="hint">
+              Auto-save: edits commit on blur / Enter. Fields are keyed by <code>data-field</code> for webhook mapping.
+            </div>
+          </div>
+
+          <!-- RESEARCH — Jordan Johns framework (order updated 2026-07-10) -->
+          <div class="tab-pane" id="pane-research" role="tabpanel" aria-labelledby="tab-research">
+            <div class="research-intro">Driving question: <strong>“Why is this property delinquent?”</strong> Work the steps in order — land records &amp; liens before skip trace and death confirmation.</div>
+
+            <!-- Step 1 — tax balance / payment history / min $100K spread -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>1 · Worth the Squeeze?</h3></div>
+              </div>
+
+              <div class="field-grid">
+                <div>
+                  <div class="field" data-field="years_delinquent">
+                    <div class="label">Years Delinquent</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
                   <div class="field" data-field="last_payment_date">
                     <div class="label">Last Payment Date</div>
                     <div class="value">
@@ -1164,22 +1436,19 @@
                       </span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Research workflow: Step 1 — Owner & Death -->
-            <div class="section">
-              <div class="section-head">
-                <div><h3>1 · Owner &amp; Death Research</h3></div>
-              </div>
-
-              <div class="field-grid">
-                <div>
-                  <div class="field" data-field="owner_status">
-                    <div class="label">Owner Status</div>
+                  <div class="field" data-field="total_equity">
+                    <div class="label">Equity</div>
                     <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="field" data-field="zillow_link">
+                    <div class="label">Zillow Link</div>
+                    <div class="value">
+                      <span class="value-text link" data-editable="true">—</span>
                       <span class="edit" title="Edit">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1188,13 +1457,10 @@
                       </span>
                     </div>
                   </div>
-                </div>
-
-                <div>
-                  <div class="field" data-field="death_confirmed">
-                    <div class="label">Death Confirmed</div>
+                  <div class="field" data-field="tax_assessor_link">
+                    <div class="label">Tax Assessor Link</div>
                     <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
+                      <span class="value-text link" data-editable="true">—</span>
                       <span class="edit" title="Edit">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1203,50 +1469,10 @@
                       </span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Research workflow: Step 2 — Probate & Will -->
-            <div class="section">
-              <div class="section-head">
-                <div><h3>2 · Probate &amp; Will</h3></div>
-              </div>
-
-              <div class="field-grid">
-                <div>
-                  <div class="field" data-field="probate_status">
-                    <div class="label">Probate Status</div>
+                  <div class="field" data-field="google_maps_link">
+                    <div class="label">Google Maps Link</div>
                     <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="probate_case">
-                    <div class="label">Probate Case #</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="field" data-field="will_status">
-                    <div class="label">Will Status</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
+                      <span class="value-text link" data-editable="true">—</span>
                       <span class="edit" title="Edit">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1259,10 +1485,10 @@
               </div>
             </div>
 
-            <!-- Research workflow: Step 3 — Title & Deed -->
+            <!-- Step 2 — last vesting deed, community vs separate property -->
             <div class="section">
               <div class="section-head">
-                <div><h3>3 · Title &amp; Deed</h3></div>
+                <div><h3>2 · Land Records — Title &amp; Deed</h3></div>
               </div>
 
               <div class="field-grid">
@@ -1298,81 +1524,16 @@
               </div>
             </div>
 
-            <!-- Deal Metrics Section -->
+            <!-- Step 3 — who are you really looking for -->
             <div class="section">
               <div class="section-head">
-                <div><h3>4 · Deal Metrics</h3></div>
+                <div><h3>3 · Judgments &amp; Liens</h3></div>
               </div>
 
               <div class="field-grid">
                 <div>
-                  <div class="field" data-field="condition">
-                    <div class="label">Condition</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="appraisal">
-                    <div class="label">Appraised Value</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="as_is_value">
-                    <div class="label">EST AS-IS Value</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="gross_spread">
-                    <div class="label">EST Gross Spread</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="value_to_tax_ratio">
-                    <div class="label">Value-to-Tax Ratio</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="land_value">
-                    <div class="label">Land Value</div>
+                  <div class="field" data-field="case_number">
+                    <div class="label">Case Number (Tax Suit)</div>
                     <div class="value">
                       <span class="value-text" data-editable="true">—</span>
                       <span class="edit" title="Edit">
@@ -1386,8 +1547,21 @@
                 </div>
 
                 <div>
-                  <div class="field" data-field="improvement_value">
-                    <div class="label">Improvement Value</div>
+                  <div class="step-hint">Search owner/heir in grantor–grantee records; sort by doc type, look for A/J (Abstract of Judgment), IRS / child-support / MERP liens.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4/5 — skip trace then confirm death (2+ sources) -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>4 · Owner &amp; Death</h3></div>
+              </div>
+
+              <div class="field-grid">
+                <div>
+                  <div class="field" data-field="owner_status">
+                    <div class="label">Owner Status</div>
                     <div class="value">
                       <span class="value-text" data-editable="true">—</span>
                       <span class="edit" title="Edit">
@@ -1398,9 +1572,8 @@
                       </span>
                     </div>
                   </div>
-
-                  <div class="field" data-field="years_delinquent">
-                    <div class="label">Years Delinquent</div>
+                  <div class="field" data-field="death_confirmed">
+                    <div class="label">Death Confirmed</div>
                     <div class="value">
                       <span class="value-text" data-editable="true">—</span>
                       <span class="edit" title="Edit">
@@ -1411,9 +1584,8 @@
                       </span>
                     </div>
                   </div>
-
-                  <div class="field" data-field="tier">
-                    <div class="label">Tier</div>
+                  <div class="field" data-field="birth_date">
+                    <div class="label">Birth Date</div>
                     <div class="value">
                       <span class="value-text" data-editable="true">—</span>
                       <span class="edit" title="Edit">
@@ -1424,7 +1596,102 @@
                       </span>
                     </div>
                   </div>
+                </div>
 
+                <div>
+                  <div class="field" data-field="death_date">
+                    <div class="label">Death Date</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="age">
+                    <div class="label">Age</div>
+                    <div class="value">
+                      <span class="value-text">—</span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="obituary_link">
+                    <div class="label">Obituary Link</div>
+                    <div class="value">
+                      <span class="value-text link" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 5 — death date confirmed → check probate with confidence -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>5 · Probate &amp; Will</h3></div>
+              </div>
+
+              <div class="field-grid">
+                <div>
+                  <div class="field" data-field="probate_status">
+                    <div class="label">Probate Status</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="field" data-field="probate_case">
+                    <div class="label">Probate Case #</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="field" data-field="will_status">
+                    <div class="label">Will Status</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 6 — who has interest; dial from the heirs table -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>6 · Heirs &amp; Interest</h3></div>
+              </div>
+
+              <div class="field-grid">
+                <div>
                   <div class="field" data-field="heir_count">
                     <div class="label">Heir Count</div>
                     <div class="value">
@@ -1438,183 +1705,8 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-
-            <!-- Update Activity (always open) -->
-            <div class="section">
-              <div class="section-head">
-                <div><h3>5 · Update Activity</h3></div>
-              </div>
-              <div>
-                <div class="field-grid">
-                  <div>
-                    <div class="field" data-field="next_action_step">
-                      <div class="label">Next Action Step</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="field" data-field="stalled_reason">
-                      <div class="label">Stalled Reason</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="field" data-field="follow_up_date">
-                      <div class="label">Follow-up Date</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="field" data-field="cca_status">
-                      <div class="label">CCA Status</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="field" data-field="cca_started_date">
-                      <div class="label">CCA Started Date</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="field" data-field="hail_mary_method">
-                      <div class="label">Hail Mary Method</div>
-                      <div class="value">
-                        <span class="value-text" data-editable="true">—</span>
-                        <span class="edit" title="Edit">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Related Contacts - MODERNIZED -->
-            <div class="section">
-              <div class="section-head">
-                <div><h3>6 · Heirs &amp; Related Contacts</h3></div>
-                <div class="section-meta" id="contactsSummary">—</div>
-              </div>
-
-              <!-- Sub-tabs for Confirmed Owners vs Other Contacts -->
-              <div class="sub-tabs-bar" role="tablist" aria-label="Contact Tabs">
-                <button class="sub-tab" role="tab" id="subtab-confirmed" aria-selected="true" aria-controls="subpane-confirmed" type="button">Confirmed Owners</button>
-                <button class="sub-tab" role="tab" id="subtab-other" aria-selected="false" aria-controls="subpane-other" type="button">Other Related Contacts</button>
-              </div>
-
-              <!-- Confirmed Owners Table - OPTIMIZED COLUMNS -->
-              <div class="sub-tab-pane active" id="subpane-confirmed" role="tabpanel" aria-labelledby="subtab-confirmed">
-                <div class="table-wrap">
-                  <table aria-label="Confirmed Owners Table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Phones</th>
-                        <th>Notes</th>
-                        <th>Next Follow-up</th>
-                        <th>Quick Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="confirmedOwnersTbody"></tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Other Related Contacts Table - DYNAMIC PHONE COLUMNS -->
-              <div class="sub-tab-pane" id="subpane-other" role="tabpanel" aria-labelledby="subtab-other">
-                <div class="table-wrap">
-                  <table aria-label="Other Related Contacts Table" id="otherContactsTable">
-                    <thead id="otherContactsHead">
-                      <tr>
-                        <th>Name</th>
-                        <th>Relation</th>
-                        <th>Lead Status</th>
-                        <th>Contact Outcome</th>
-                      </tr>
-                    </thead>
-                    <tbody id="otherContactsTbody"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="hint">
-              Auto-save: edits commit on blur / Enter. Fields are keyed by <code>data-field</code> for webhook mapping.
-            </div>
-          </div>
-
-          <!-- RESEARCH -->
-          <div class="tab-pane" id="pane-research" role="tabpanel" aria-labelledby="tab-research">
-            <div class="section">
-              <div class="section-head">
-                <div><h3>Research</h3></div>
-              </div>
-
-              <div class="field-grid">
                 <div>
-                  <div class="field" data-field="obituary_link">
-                    <div class="label">Obituary Link</div>
-                    <div class="value">
-                      <span class="value-text link" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
                   <div class="field" data-field="ancestry_link">
                     <div class="label">Ancestry Link</div>
                     <div class="value">
@@ -1627,154 +1719,31 @@
                       </span>
                     </div>
                   </div>
-
-                  <div class="field" data-field="zillow_link">
-                    <div class="label">Zillow Link</div>
-                    <div class="value">
-                      <span class="value-text link" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="tax_assessor_link">
-                    <div class="label">Tax Assessor Link</div>
-                    <div class="value">
-                      <span class="value-text link" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="google_maps_link">
-                    <div class="label">Google Maps Link</div>
-                    <div class="value">
-                      <span class="value-text link" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="field" data-field="birth_date">
-                    <div class="label">Birth Date</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="death_date">
-                    <div class="label">Death Date</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="age">
-                    <div class="label">Age</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="field" data-field="creation_log">
-                    <div class="label">Creation Log</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
+                  <div class="step-hint">Narrow to real heirs, then work the numbers in <strong>Heirs &amp; Related Contacts</strong> on the Deal Information tab.</div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- ACTIVITY -->
-          <div class="tab-pane" id="pane-activity" role="tabpanel" aria-labelledby="tab-activity">
             <div class="section">
               <div class="section-head">
-                <div><h3>Activity</h3></div>
+                <div><h3>Record Meta</h3></div>
               </div>
 
               <div class="field-grid">
                 <div>
-                  <div class="field" data-field="last_contacted">
-                    <div class="label">Last Contacted</div>
+                  <div class="field" data-field="creation_log">
+                    <div class="label">Creation Log</div>
                     <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
+                      <span class="value-text">—</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <div class="field" data-field="activity_notes">
-                    <div class="label">Notes</div>
-                    <div class="value">
-                      <span class="value-text" data-editable="true">—</span>
-                      <span class="edit" title="Edit">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="hint">Wire this pane to monday updates + files if you want a true activity feed.</div>
-          </div>
-
-          <!-- MILESTONES -->
-          <div class="tab-pane" id="pane-milestones" role="tabpanel" aria-labelledby="tab-milestones">
-            <div class="section">
-              <div class="section-head">
-                <div><h3>Milestones</h3></div>
-              </div>
-            </div>
           </div>
 
         </div>
@@ -1823,8 +1792,9 @@
         if (!payload || typeof payload !== "object") return;
 
         for (const [key, value] of Object.entries(payload)) {
-          const node = document.querySelector(`.field[data-field="${cssEscape(key)}"] .value-text`);
-          if (node) node.textContent = formatValue(value);
+          document.querySelectorAll(`.field[data-field="${cssEscape(key)}"] .value-text`).forEach(node => {
+            node.textContent = formatValue(value);
+          });
         }
 
         // Phase E1 DISABLED 2026-04-23: condition now shows the Property Condition
@@ -1837,6 +1807,16 @@
           if (snap) snap.textContent = formatValue(value);
         }
 
+        // Last Contacted arrives as an ISO timestamp — show a readable date
+        if (payload.last_contacted) {
+          const lc = parseFlexibleDate(payload.last_contacted);
+          if (lc) {
+            document.querySelectorAll('.field[data-field="last_contacted"] .value-text').forEach(el => {
+              el.textContent = lc.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+            });
+          }
+        }
+
         // Format currency fields
         const formatCurrency = (val) => {
           if (!val || val === "—") return "—";
@@ -1845,8 +1825,10 @@
           return "$" + Math.round(num).toLocaleString("en-US");
         };
         ["taxes_owed", "total_equity", "appraisal", "as_is_value", "gross_spread", "land_value", "improvement_value"].forEach(field => {
-          const el = document.querySelector(`.field[data-field="${field}"] .value-text`);
-          if (el && payload[field]) el.textContent = formatCurrency(payload[field]);
+          if (!payload[field]) return;
+          document.querySelectorAll(`.field[data-field="${field}"] .value-text`).forEach(el => {
+            el.textContent = formatCurrency(payload[field]);
+          });
         });
         // Also format snapshot appraisal/taxes if present
         ["taxes_owed", "appraisal"].forEach(field => {
@@ -1856,9 +1838,11 @@
 
         // Ratio formula is numeric on the board now (so views can filter
         // greater-than) — re-append the % for display only
-        const ratioEl = document.querySelector('.field[data-field="value_to_tax_ratio"] .value-text');
-        if (ratioEl && payload.value_to_tax_ratio && !String(payload.value_to_tax_ratio).includes("%")) {
-          ratioEl.textContent = String(payload.value_to_tax_ratio) + "%";
+        if (payload.value_to_tax_ratio && !String(payload.value_to_tax_ratio).includes("%")) {
+          const ratioDisplay = String(payload.value_to_tax_ratio) + "%";
+          document.querySelectorAll('.field[data-field="value_to_tax_ratio"] .value-text, [data-snapshot="true"][data-field="value_to_tax_ratio"]').forEach(el => {
+            el.textContent = ratioDisplay;
+          });
         }
 
         // ── Deal Insight metrics computed from confirmed_owners ──────────────
@@ -1945,19 +1929,14 @@
         // ── End Last Contact ─────────────────────────────────────────────────
 
         if (Array.isArray(payload.confirmed_owners)) {
-          // Separate confirmed owners from other contacts based on owner_status
-          const allContacts = payload.confirmed_owners;
-          const confirmedOnly = allContacts.filter(c =>
+          ALL_CONTACTS = payload.confirmed_owners;
+          rerenderContacts();
+          updateActionBannerFromContacts(ALL_CONTACTS.filter(c =>
             String(c.owner_status || "").trim().toLowerCase() === "yes"
-          );
-          const otherOnly = allContacts.filter(c =>
-            String(c.owner_status || "").trim().toLowerCase() !== "yes"
-          );
-
-          renderConfirmedOwners(confirmedOnly);
-          renderOtherContacts(otherOnly);
-          updateActionBannerFromContacts(confirmedOnly);
+          ));
         } else {
+          ALL_CONTACTS = [];
+          rerenderContacts();
           updateActionBannerFromContacts([]);
         }
         computeContactsSummary(payload);
@@ -2033,16 +2012,260 @@
       return `${days} days ago`;
     }
 
-    function renderConfirmedOwners(contacts){
+    // ── Heirs & related contacts: shared store + inline editing ──────────
+    // (Alan 2026-07-13: work numbers from here — copy/dial, tag dispositions,
+    //  promote the correct number to the Phone column, flip status In Contact)
+    let ALL_CONTACTS = [];
+
+    // Parent board → its subitems board (needed for subitem column writes)
+    const SUBITEM_BOARDS = {
+      "7886033430": "7886033852",   // Prospecting
+      "6464951893": "6464952207",   // Opportunities
+      "9593389151": "9593389436",   // Transaction Coordinating
+      "9587157658": "9587157810",   // Closed Deals
+    };
+    // Column ids per SUBITEM board. Only what actually exists on each board —
+    // a missing key hides that edit control instead of saving into the void.
+    const SUBITEM_COLS = {
+      "7886033852": { phones: "long_text_mkmxwp28", status: "status", phone: "phone", relation: "text_mkmermrc" },
+      "6464952207": { status: "status", phone: "phone", relation: "text_mkmermrc" },
+      "9593389436": { status: "status" },
+      "9587157810": {},
+    };
+    const HEIR_STATUS_OPTIONS = ["Not Contacted", "Ready to Dial", "Call for info", "In Contact", "No Answer", "Research", "Skiptrace", "Prepare Mail", "Mail Sent", "Not interested", "Defendant", "Relative", "Company", "Deceased owner", "Deceased Heir", "Tax - Assed Owner", "wrong person"];
+    const PHONE_TAGS = ["CORRECT", "NO ANSWER", "LVM", "SMS SENT", "WRONG NUMBER", "DEAD NUMBER", "CALL FAIL", "DNC"];
+
+    function subBoardId(){
+      const { boardId } = extractIdsFromUrl();
+      return SUBITEM_BOARDS[boardId] || null;
+    }
+    function subCols(){
+      return SUBITEM_COLS[subBoardId()] || {};
+    }
+
+    async function saveSubitemColumn(subitemId, columnId, value){
+      try {
+        const res = await fetch(SAVE_WEBHOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ boardId: subBoardId(), pulseId: subitemId, columnId, value })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const body = await res.json().catch(() => null);
+        const r = Array.isArray(body) ? body[0] : body;
+        // Empty body = workflow died mid-run — treat as failure
+        if (!r || r.success === false) throw new Error(JSON.stringify(r?.errors || r || "no response body"));
+        showSaveToast("success");
+        return true;
+      } catch (err) {
+        console.error("[Heirs] subitem save failed:", err);
+        showSaveToast("error");
+        return false;
+      }
+    }
+
+    // Parse the Skiptraced Numbers long-text: one number per line, e.g.
+    //   (281) 334-7174 (CT) (L) (66%) [DN]
+    // A line without a phone number is a disposition note for the line above.
+    const PHONE_LINE_RE = /\(?(\d{3})\)?[\s.\-]*(\d{3})[\s.\-]*(\d{4})/;
+    function parseSkiptracePhones(raw){
+      if (Array.isArray(raw)) {
+        return raw.filter(Boolean).map((p, i) => ({
+          display: formatPhoneDisplay(p) || String(p),
+          digits: String(p).replace(/\D/g, ""),
+          meta: "", note: "", lineIdx: i
+        }));
+      }
+      const out = [];
+      String(raw || "").split("\n").forEach((line, i) => {
+        const m = line.match(PHONE_LINE_RE);
+        if (m) {
+          out.push({
+            display: `${m[1]}-${m[2]}-${m[3]}`,
+            digits: m[1] + m[2] + m[3],
+            meta: line.replace(m[0], "").trim(),
+            note: "",
+            lineIdx: i
+          });
+        } else if (out.length && line.trim()) {
+          const last = out[out.length - 1];
+          last.note = (last.note ? last.note + " " : "") + line.trim();
+        }
+      });
+      return out;
+    }
+
+    // Tag a phone's line inside the Skiptraced Numbers text ([TAG] replaced or
+    // appended), save the whole column back, and keep the local copy in sync.
+    async function tagPhoneLine(contact, lineIdx, tag){
+      const cols = subCols();
+      if (!cols.phones || !contact.id || Array.isArray(contact.phones)) return false;
+      const lines = String(contact.phones || "").split("\n");
+      if (lineIdx >= lines.length) return false;
+      const line = lines[lineIdx];
+      lines[lineIdx] = /\[[^\]]*\]\s*$/.test(line)
+        ? line.replace(/\[[^\]]*\]\s*$/, `[${tag}]`)
+        : `${line.replace(/\s+$/, "")} [${tag}]`;
+      const newText = lines.join("\n");
+      // Send as {text} object: the save webhook routes objects through
+      // change_column_value with JSON encoding, which survives the newlines
+      // (raw multiline strings break its GraphQL and fail with an empty 200)
+      const ok = await saveSubitemColumn(contact.id, cols.phones, { text: newText });
+      if (ok) { contact.phones = newText; rerenderContacts(); }
+      return ok;
+    }
+
+    // "★" — promote to the subitem Phone column + flip status to In Contact
+    // (Alan: "put it in the Phone number column ... change to In Contact")
+    async function setMainNumber(contact, digits){
+      const cols = subCols();
+      if (!cols.phone || !contact.id) return false;
+      const ok = await saveSubitemColumn(contact.id, cols.phone, digits);
+      if (!ok) return false;
+      if (cols.status && await saveSubitemColumn(contact.id, cols.status, "In Contact")) {
+        contact.lead_status = "In Contact";
+      }
+      rerenderContacts();
+      return true;
+    }
+
+    async function setContactStatus(contact, label){
+      const cols = subCols();
+      if (!cols.status || !contact.id) return false;
+      const ok = await saveSubitemColumn(contact.id, cols.status, label);
+      if (ok) { contact.lead_status = label; }
+      rerenderContacts();
+      return ok;
+    }
+
+    async function setContactRelation(contact, text){
+      const cols = subCols();
+      if (!cols.relation || !contact.id) return false;
+      const ok = await saveSubitemColumn(contact.id, cols.relation, text);
+      if (ok) { contact.relationship = text; }
+      rerenderContacts();
+      return ok;
+    }
+
+    function copyText(t){
+      const fallback = () => {
+        const ta = document.createElement("textarea");
+        ta.value = t;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        ta.remove();
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).catch(fallback);
+      } else fallback();
+    }
+
+    function phonesCellHtml(contact, ci){
+      const cols = subCols();
+      const phones = parseSkiptracePhones(contact.phones);
+      if (!phones.length) return '<span class="td-muted">—</span>';
+      const canTag = !!cols.phones && !!contact.id && !Array.isArray(contact.phones);
+      const canMain = !!cols.phone && !!contact.id;
+      return phones.map(p => `
+        <div class="phone-row">
+          <a href="tel:${p.digits}" class="phone-link">${escapeHtml(p.display)}</a>
+          <button class="pbtn copy-phone" type="button" title="Copy number" data-digits="${p.digits}">⧉</button>
+          ${p.meta ? `<span class="phone-meta">${escapeHtml(p.meta)}</span>` : ""}
+          ${p.note ? `<span class="phone-note">${escapeHtml(p.note)}</span>` : ""}
+          ${canTag ? `<select class="phone-tag" data-ci="${ci}" data-line="${p.lineIdx}" title="Tag this number's disposition">
+            <option value="">tag…</option>
+            ${PHONE_TAGS.map(t => `<option value="${t}">${t}</option>`).join("")}
+          </select>` : ""}
+          ${canMain ? `<button class="pbtn set-main" type="button" title="Set as main number + mark In Contact" data-ci="${ci}" data-digits="${p.digits}">★</button>` : ""}
+        </div>`).join("");
+    }
+
+    function statusCellHtml(contact, ci){
+      const dot = leadStatusDot(contact.lead_status ?? contact.leadStatus ?? null);
+      if (!subCols().status || !contact.id) return dot;
+      return `<span class="status-edit" data-ci="${ci}" title="Click to change status" style="cursor:pointer;">${dot}</span>`;
+    }
+
+    function wireContactEvents(tbody){
+      tbody.querySelectorAll(".copy-phone").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        copyText(b.getAttribute("data-digits"));
+        b.textContent = "✓";
+        setTimeout(() => { b.textContent = "⧉"; }, 900);
+      }));
+      tbody.querySelectorAll(".phone-tag").forEach(s => s.addEventListener("change", () => {
+        const c = ALL_CONTACTS[parseInt(s.getAttribute("data-ci"), 10)];
+        if (c && s.value) tagPhoneLine(c, parseInt(s.getAttribute("data-line"), 10), s.value);
+      }));
+      tbody.querySelectorAll(".set-main").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const c = ALL_CONTACTS[parseInt(b.getAttribute("data-ci"), 10)];
+        if (c) setMainNumber(c, b.getAttribute("data-digits"));
+      }));
+      tbody.querySelectorAll(".status-edit").forEach(sp => sp.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (sp.querySelector("select")) return;
+        const c = ALL_CONTACTS[parseInt(sp.getAttribute("data-ci"), 10)];
+        if (!c) return;
+        const cur = c.lead_status || "";
+        const sel = document.createElement("select");
+        sel.className = "inline-select";
+        sel.innerHTML = HEIR_STATUS_OPTIONS.map(o =>
+          `<option value="${o}"${o === cur ? " selected" : ""}>${o}</option>`).join("");
+        sp.innerHTML = "";
+        sp.appendChild(sel);
+        sel.focus();
+        sel.addEventListener("change", () => setContactStatus(c, sel.value));
+        sel.addEventListener("blur", () => setTimeout(rerenderContacts, 150));
+      }));
+      tbody.querySelectorAll(".rel-edit").forEach(td => td.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (td.querySelector("input")) return;
+        const c = ALL_CONTACTS[parseInt(td.getAttribute("data-ci"), 10)];
+        if (!c) return;
+        const cur = (c.relationship && c.relationship !== "—") ? c.relationship : "";
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.className = "inline-input";
+        inp.value = cur;
+        inp.placeholder = "Relation…";
+        td.innerHTML = "";
+        td.appendChild(inp);
+        inp.focus();
+        let done = false;
+        const commit = () => {
+          if (done) return; done = true;
+          const v = inp.value.trim();
+          if (v !== cur) setContactRelation(c, v); else rerenderContacts();
+        };
+        inp.addEventListener("blur", commit);
+        inp.addEventListener("keydown", (ke) => {
+          if (ke.key === "Enter") { ke.preventDefault(); commit(); }
+          if (ke.key === "Escape") { done = true; rerenderContacts(); }
+        });
+      }));
+      tbody.querySelectorAll(".add-note-btn").forEach(btn => btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const c = ALL_CONTACTS[parseInt(btn.getAttribute("data-ci"), 10)];
+        if (c) openNoteModal(c, 0, btn);
+      }));
+    }
+
+    function rerenderContacts(){
+      renderConfirmedOwners();
+      renderOtherContacts();
+    }
+
+    function renderConfirmedOwners(){
       const tbody = document.getElementById("confirmedOwnersTbody");
-      // Only show owner_status === "Yes" in this tab
-      const confirmed = (contacts || []).filter(c =>
+      const confirmed = ALL_CONTACTS.filter(c =>
         String(c.owner_status || "").trim().toLowerCase() === "yes"
       );
       // Sort by lead status — closest to Closed first
       const STATUS_ORDER = [
         "closed", "accepted offer", "negotiations", "review",
-        "interested in selling", "contacted", "attempt 3",
+        "interested in selling", "in contact", "contacted", "attempt 3",
         "attempt 2", "attempt 1", "re-skiptrace"
       ];
       const statusRank = (s) => {
@@ -2053,38 +2276,13 @@
       const sorted = [...confirmed].sort((a, b) =>
         statusRank(a.lead_status || a.leadStatus) - statusRank(b.lead_status || b.leadStatus)
       );
-      const rows = sorted.map((c, index) => {
+
+      const rows = sorted.map(c => {
+        const ci = ALL_CONTACTS.indexOf(c);
         const ownershipPercent = c.ownership_percent ?? c.ownershipPercent ?? "—";
-        const motivation       = c.seller_motivation ?? c.motivation ?? null;
-        const lastContact      = c.contacted_date ?? c.lastContact ?? null;
-        const contactOutcome   = c.contact_outcome ?? c.contactOutcome ?? null;
-        const leadStatus       = c.lead_status ?? c.leadStatus ?? null;
         const followupDate     = c.follow_up_date ?? c.followupDate ?? null;
-        const offerMade        = c.offer_made ?? c.offerMade ?? false;
-        const offerAmount      = c.offer_amount ?? c.offerAmount ?? "—";
         const mondayUrl        = c.monday_url ?? c.mondayUrl ?? null;
 
-        // Handle phones: new array format or fallback to phone_1
-        let phone1 = null;
-        if (Array.isArray(c.phones) && c.phones.length > 0) {
-          phone1 = formatPhoneDisplay(c.phones[0]);
-        } else {
-          phone1 = formatPhoneDisplay(c.phone_1 ?? c.phone1 ?? null);
-        }
-
-        // Calculate days ago from contacted_date
-        const daysAgo = calcDaysAgo(lastContact);
-        let lastContactColor = '#374151';
-        if (daysAgo) {
-          const match = daysAgo.match(/(\d+)/);
-          if (match) {
-            const days = parseInt(match[1]);
-            if (days >= 12) lastContactColor = '#dc2626';
-            else if (days >= 6) lastContactColor = '#f59e0b';
-          }
-        }
-
-        // Follow-up overdue / upcoming
         let followupCell = `<span class="td-muted">—</span>`;
         if (followupDate && followupDate !== "—") {
           const fpDate = parseFlexibleDate(followupDate);
@@ -2117,26 +2315,6 @@
 
         const isClosed = String(c.lead_status || "").trim().toLowerCase() === "closed";
         const closedBadge = isClosed ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#16a34a;flex-shrink:0;margin-left:6px;vertical-align:middle;"><svg style="width:9px;height:9px;" viewBox="0 0 20 20" fill="white"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd"/></svg></span>` : '';
-
-        // Build phones cell with all numbers and call outcome dropdowns
-        const phones = Array.isArray(c.phones) ? c.phones : [];
-        const allPhones = phones.length > 0 ? phones : (phone1 ? [c.phone_1 || c.phone1] : []);
-
-        const CALL_OUTCOMES = ["No Answer", "Left Voicemail", "Spoke - Interested", "Spoke - Not Interested", "Spoke - Call Back", "Wrong Number", "Disconnected", "Do Not Call"];
-
-        const phonesHtml = allPhones.length > 0 ? allPhones.map((ph, pi) => {
-          const display = formatPhoneDisplay(ph);
-          if (!display) return '';
-          return `
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:${pi < allPhones.length - 1 ? '6px' : '0'};">
-              <a href="tel:${formatPhoneForTel(display)}" style="font-weight:500; color:#0176d3; text-decoration:none; font-size:14px; white-space:nowrap;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escapeHtml(display)}</a>
-              <select style="font-size:12px; padding:2px 4px; border:1px solid #d1d5db; border-radius:4px; color:#6b7280; cursor:pointer; max-width:120px;" onchange="console.log('Call outcome for ${escapeHtml(display)}:', this.value)">
-                <option value="">Outcome</option>
-                ${CALL_OUTCOMES.map(co => `<option value="${co}">${co}</option>`).join('')}
-              </select>
-            </div>`;
-        }).filter(Boolean).join('') : '<span class="td-muted">—</span>';
-
         const contactNotes = c.notes || "—";
 
         return `
@@ -2154,98 +2332,38 @@
               ${ownershipPercent && ownershipPercent !== "—" && ownershipPercent !== 0 && ownershipPercent !== "0" ? `<span style="font-size: 12px; font-weight: 700; color: #0176d3;">${escapeHtml(String(ownershipPercent))}%</span>` : ''}
             </div>
           </td>
-          <td>${leadStatusDot(leadStatus)}</td>
-          <td style="min-width:240px;">${phonesHtml}</td>
+          <td>${statusCellHtml(c, ci)}</td>
+          <td style="min-width:280px;">${phonesCellHtml(c, ci)}</td>
           <td style="max-width:200px; white-space:normal; font-size:14px; color:#374151;">${contactNotes !== "—" ? escapeHtml(contactNotes) : `<span class="td-muted">—</span>`}</td>
           <td>${followupCell}</td>
           <td>
             <div class="quick-actions">
-              <button class="btn add-note-btn" type="button" data-contact-index="${index}">Add Note</button>
+              <button class="btn add-note-btn" type="button" data-ci="${ci}">Add Note</button>
             </div>
           </td>
         </tr>
       `;
       }).join("");
       tbody.innerHTML = rows || `<tr><td class="td-muted" colspan="6">No Confirmed Owners</td></tr>`;
-
-      // Add event listeners to Add Note buttons
-      tbody.querySelectorAll('.add-note-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const contactIndex = parseInt(e.target.getAttribute('data-contact-index'));
-          openNoteModal(sorted[contactIndex], contactIndex, e.target);
-        });
-      });
+      wireContactEvents(tbody);
     }
 
-    function renderOtherContacts(contacts){
+    function renderOtherContacts(){
       const tbody = document.getElementById("otherContactsTbody");
-      const thead = document.getElementById("otherContactsHead");
-
-      // Show subitems where owner_status is NOT "Yes"
-      const others = (contacts || []).filter(c =>
+      const others = ALL_CONTACTS.filter(c =>
         String(c.owner_status || "").trim().toLowerCase() !== "yes"
       );
 
-      if (!others || others.length === 0) {
-        tbody.innerHTML = `<tr><td class="td-muted" colspan="8">No other related contacts.</td></tr>`;
+      if (!others.length) {
+        tbody.innerHTML = `<tr><td class="td-muted" colspan="6">No other related contacts.</td></tr>`;
         return;
       }
 
-      // Calculate max phone count across all contacts
-      let maxPhones = 0;
-      others.forEach(c => {
-        const phones = Array.isArray(c.phones) ? c.phones : [];
-        if (phones.length > maxPhones) maxPhones = phones.length;
-      });
-
-      // Build dynamic phone column headers
-      let phoneHeadersHtml = '';
-      for (let i = 1; i <= maxPhones; i++) {
-        phoneHeadersHtml += `<th>Phone ${i}</th>`;
-      }
-
-      // Update table headers dynamically
-      const headerRow = thead.querySelector('tr');
-      if (phoneHeadersHtml) {
-        headerRow.innerHTML = `
-          <th>Name</th>
-          <th>Relation</th>
-          <th>Lead Status</th>
-          <th>Contact Outcome</th>
-          <th>Notes</th>
-          ${phoneHeadersHtml}
-        `;
-      }
-
-      const simpleStatusCell = (val) => {
-        if (!val || val === "—") return `<span class="td-muted">—</span>`;
-        if (typeof val === "object") return statusCell(val);
-        const v = val.toLowerCase();
-        let tone = "dot";
-        if (v.includes("correct") || v.includes("good") || v.includes("contacted")) tone = "dot good";
-        else if (v.includes("dial na") || v.includes("wrong") || v.includes("disconnected")) tone = "dot warn";
-        return `<span class="status"><span class="${tone}"></span>${escapeHtml(val)}</span>`;
-      };
-
+      const canRelate = !!subCols().relation;
       const rows = others.map(c => {
-        const mondayUrl      = c.monday_url ?? c.mondayUrl ?? null;
-        const leadStatus     = c.lead_status ?? c.leadStatus ?? null;
-        const contactOutcome = c.contact_outcome ?? c.contactOutcome ?? "—";
-        const relationship   = c.relationship ?? "—";
-        const phones         = Array.isArray(c.phones) ? c.phones : [];
-
-        // Build phone cells
-        let phoneCells = '';
-        for (let i = 0; i < maxPhones; i++) {
-          const phone = phones[i];
-          const displayPhone = formatPhoneDisplay(phone);
-          if (displayPhone) {
-            phoneCells += `<td><a href="tel:${formatPhoneForTel(displayPhone)}" style="font-weight:500; color:#0176d3; text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escapeHtml(displayPhone)}</a></td>`;
-          } else {
-            phoneCells += `<td><span class="td-muted">—</span></td>`;
-          }
-        }
+        const ci = ALL_CONTACTS.indexOf(c);
+        const mondayUrl    = c.monday_url ?? c.mondayUrl ?? null;
+        const relationship = (c.relationship && c.relationship !== "—") ? c.relationship : "";
 
         return `
         <tr>
@@ -2255,15 +2373,20 @@
               : `<span style="font-weight: 600;">${escapeHtml(c.name ?? "—")}</span>`
             }
           </td>
-          <td class="td-muted">${escapeHtml(relationship)}</td>
-          <td>${leadStatusDot(leadStatus)}</td>
-          <td>${escapeHtml(contactOutcome)}</td>
+          <td class="td-muted${canRelate && c.id ? ' rel-edit' : ''}"${canRelate && c.id ? ` data-ci="${ci}" title="Click to edit relation" style="cursor:pointer;"` : ''}>${relationship ? escapeHtml(relationship) : '<span class="td-muted">—</span>'}</td>
+          <td>${statusCellHtml(c, ci)}</td>
+          <td style="min-width:280px;">${phonesCellHtml(c, ci)}</td>
           <td style="max-width:200px; white-space:normal; font-size:14px; color:#374151;">${c.notes && c.notes !== "—" ? escapeHtml(c.notes) : `<span class="td-muted">—</span>`}</td>
-          ${phoneCells}
+          <td>
+            <div class="quick-actions">
+              <button class="btn add-note-btn" type="button" data-ci="${ci}">Add Note</button>
+            </div>
+          </td>
         </tr>
       `;
       }).join("");
       tbody.innerHTML = rows;
+      wireContactEvents(tbody);
     }
 
     // Sub-tabs functionality
@@ -2527,8 +2650,10 @@
         // check the body, or bad saves fail silently (the 0-date-fills bug)
         const result = await res.json().catch(() => null);
         const r = Array.isArray(result) ? result[0] : result;
-        if (r && r.success === false) {
-          throw new Error(r.errors?.[0]?.message || "Monday rejected the value");
+        // An empty/unparseable body means the workflow died mid-run (e.g. a
+        // GraphQL syntax error) — that is a failure, not a success
+        if (!r || r.success === false) {
+          throw new Error(r?.errors?.[0]?.message || "Save workflow returned no result");
         }
         console.log(`✓ Saved ${fieldKey} →`, newValue);
         return true;
@@ -2542,7 +2667,7 @@
     // Checklist ticks — a section is complete when none of its editable
     // fields still shows the "—" placeholder
     function updateSectionTicks() {
-      document.querySelectorAll("#pane-deal .section").forEach(sec => {
+      document.querySelectorAll("#pane-deal .section, #pane-research .section").forEach(sec => {
         const fields = sec.querySelectorAll('.field .value-text[data-editable="true"]');
         if (!fields.length) return;
         const done = Array.from(fields).every(n => {
@@ -2745,6 +2870,11 @@
           left.remove();
           valueText.style.display = "";
           pencil.style.display = "";
+          // Keep read-only mirrors of this field (e.g. Deal Information copies
+          // of EST AS-IS / Gross Spread) in sync with the edited value
+          document.querySelectorAll(`.field[data-field="${cssEscape(fieldKey)}"] .value-text`).forEach(n => {
+            if (n !== valueText) n.textContent = valueText.textContent;
+          });
           if (newValue !== (oldValue.replace(/[^0-9]/g, "") || "—")) {
             let saveValue = newValue === "—" ? "" : newValue;
             // Link columns expect Monday's {url, text} object, not a plain string
@@ -3274,9 +3404,10 @@
 
         // Post the note on the heir's own subitem when we know it;
         // otherwise fall back to the main item with the name prefixed.
-        const subitemMatch = String(currentNoteContact.mondayUrl || '').match(/\/pulses\/(\d+)/);
-        const targetItemId = subitemMatch ? subitemMatch[1] : pulseId;
-        const noteBody = subitemMatch ? noteText : `[${currentNoteContact.name}] ${noteText}`;
+        const subitemMatch = String(currentNoteContact.mondayUrl || currentNoteContact.monday_url || '').match(/\/pulses\/(\d+)/);
+        const subitemId = currentNoteContact.id || (subitemMatch ? subitemMatch[1] : null);
+        const targetItemId = subitemId || pulseId;
+        const noteBody = subitemId ? noteText : `[${currentNoteContact.name}] ${noteText}`;
         if (!targetItemId) throw new Error('No item id to post the note to');
 
         const response = await fetch(webhookURL, {
