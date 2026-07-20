@@ -907,6 +907,35 @@
       color: #dc2626;
     }
 
+    /* ---------- HUB RESEARCH SECTION (7 · Checklist, Strategy & Title Chain) ---------- */
+    .hub-root .cards-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 1000px) { .hub-root .cards-2col { grid-template-columns: 1fr; } }
+    .hub-root .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    .hub-root .card h5 { margin: 0 0 12px; font-size: 12.5px; color: #1f3a5f; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .hub-root .fld { margin-bottom: 10px; min-width: 0; }
+    .hub-root .fld label { display: block; font-size: 10.5px; font-weight: 700; color: #5a6478; text-transform: uppercase; letter-spacing: .4px; margin: 0 0 4px; }
+    .hub-root .fld input[type="text"], .hub-root .fld select, .hub-root .fld textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 10px; font-size: 13px; font-family: inherit; color: #323338; background: #fbfcfe; }
+    .hub-root .fld textarea { min-height: 64px; resize: vertical; }
+    .hub-root .fld input:focus, .hub-root .fld select:focus, .hub-root .fld textarea:focus { outline: none; border-color: #0176d3; background: #fff; }
+    .hub-root .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .hub-root .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 16px; }
+    @media (max-width: 720px) { .hub-root .grid2, .hub-root .grid3 { grid-template-columns: 1fr; } }
+    .hub-root .pill-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .hub-root .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border-radius: 14px; padding: 4px 12px; cursor: pointer; user-select: none; border: 1px solid #d1d5db; background: #fff; color: #676879; }
+    .hub-root .pill.on { border-color: #00854d; background: #e5f4ec; color: #00854d; }
+    .hub-root .pill .tick { display: none; }
+    .hub-root .pill.on .tick { display: inline; }
+    .hub-root .hbtn { appearance: none; border: 1px solid #d1d5db; background: #fff; color: #323338; border-radius: 7px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .hub-root .hbtn:hover { border-color: #94a3b8; }
+    .hub-root .hbtn.danger { color: #b91c1c; border-color: #fecaca; }
+    .hub-root .hbtn.danger:hover { background: #fef2f2; }
+    .hub-root .rep-row { border: 1px solid #e5e7eb; border-radius: 9px; padding: 12px 12px 6px; margin-bottom: 10px; background: #fdfdfe; position: relative; }
+    .hub-root .rep-row .rep-remove { position: absolute; top: 8px; right: 8px; }
+    .hub-root .rep-empty { font-size: 12.5px; color: #94a3b8; padding: 4px 0 10px; }
+    .hub-root .chain { border-left: 3px solid #1f3a5f; margin: 4px 0 10px 6px; padding-left: 16px; }
+    .hub-root .chain .chev { position: relative; margin-bottom: 12px; }
+    .hub-root .chain .chev::before { content: ""; position: absolute; left: -22px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: #b7892b; }
+
     /* ---------- PHONE ROWS / INLINE HEIR EDITING ---------- */
     .phone-row{ display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap; }
     .phone-link{ font-weight:500; color:#0176d3; text-decoration:none; font-size:14px; white-space:nowrap; }
@@ -1724,6 +1753,15 @@
               </div>
             </div>
 
+            <!-- Step 7 — hub research packet (Firestore blob, partial-save: research only) -->
+            <div class="section">
+              <div class="section-head">
+                <div><h3>7 · Checklist, Strategy &amp; Title Chain</h3></div>
+                <div class="section-meta" id="hubSaveState">—</div>
+              </div>
+              <div id="hubResearchRoot" class="hub-root"><div class="rep-empty">Loading research packet…</div></div>
+            </div>
+
             <div class="section">
               <div class="section-head">
                 <div><h3>Record Meta</h3></div>
@@ -1941,6 +1979,7 @@
         }
         computeContactsSummary(payload);
         updateSectionTicks();
+        if (window.__hubResearch) window.__hubResearch.onRecordLoaded(payload);
       }
     };
 
@@ -3460,6 +3499,193 @@
     document.getElementById('noteTextarea').addEventListener('input', (e) => {
       document.getElementById('noteCharCount').textContent = e.target.value.length;
     });
+
+    /* ================================================================
+     *  HUB RESEARCH PACKET — section 7 on the Research tab.
+     *  Firestore-backed via dpa-blob-save/load; saves ONLY the `research`
+     *  key (partial merge server-side) so the dashboard's Family Tree /
+     *  AOH saves can never clobber it, and vice versa.
+     * ================================================================ */
+    window.__hubResearch = (function () {
+      const BLOB_SAVE = "https://tphllc.app.n8n.cloud/webhook/dpa-blob-save";
+      const BLOB_LOAD = "https://tphllc.app.n8n.cloud/webhook/dpa-blob-load";
+      const CHECKLIST = [
+        ["src_taxassessor", "Tax Assessor"], ["src_cad", "CAD"], ["src_landrecords", "Land Records"],
+        ["src_docket", "Docket"], ["src_obit", "Obituary"], ["src_grave", "Find A Grave"],
+        ["src_ancestry", "Ancestry"], ["src_ssdi", "SSDI"], ["src_skiptrace", "Skip trace"]
+      ];
+      const CHAIN_TYPES = ["Deed", "Deed of Trust", "Foreclosure", "Probate", "Settlement", "Gap / Issue", "Other"];
+      function defaultResearch() {
+        const checklist = {};
+        CHECKLIST.forEach(([k]) => checklist[k] = false);
+        return { checklist, rs_summary: "", rs_propchar: "", rs_married: "", rs_rp: "", rs_rpdate: "",
+                 rs_chainstatus: "", rs_missing: "", rs_needsreview: "", rs_confidence: "", rs_blockers: "",
+                 act_strategy: "", chainEvents: [] };
+      }
+      const st = { itemId: "", taxAccount: "", research: defaultResearch(), loaded: false, inited: false };
+
+      function h(tag, attrs = {}, ...children) {
+        const node = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === "class") node.className = v;
+          else if (k === "text") node.textContent = v;
+          else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+          else if (v !== null && v !== undefined) node.setAttribute(k, v);
+        }
+        for (const c of children) {
+          if (c === null || c === undefined) continue;
+          node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+        }
+        return node;
+      }
+      function debounce(fn, ms) { let t = null; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+      const stateEl = () => document.getElementById("hubSaveState");
+      function setState(label) { const e = stateEl(); if (e) e.textContent = label; }
+
+      const scheduleSave = debounce(saveResearch, 1200);
+      function markDirty() { if (!st.loaded) return; setState("Unsaved changes…"); scheduleSave(); }
+
+      function payload() {
+        return { itemId: st.itemId, taxAccount: st.taxAccount, research: st.research, updatedAt: new Date().toISOString() };
+      }
+      async function saveResearch() {
+        if (!st.loaded || !st.itemId) return;
+        setState("Saving…");
+        try {
+          const res = await fetch(BLOB_SAVE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload()) });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const r = await res.json().catch(() => null);
+          if (!r || (Array.isArray(r) ? r[0] : r).success === false) throw new Error("save workflow returned no result");
+          setState("Saved ✓");
+        } catch (err) {
+          console.error("[HubResearch] save failed:", err);
+          setState("⚠ Save failed — edit again to retry");
+          showSaveToast("error");
+        }
+      }
+      window.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden" && (stateEl() || {}).textContent === "Unsaved changes…") {
+          try { navigator.sendBeacon(BLOB_SAVE, new Blob([JSON.stringify(payload())], { type: "application/json" })); } catch (e) {}
+        }
+      });
+
+      function bindText(obj, key, input) {
+        input.value = obj[key] || "";
+        input.addEventListener("input", () => { obj[key] = input.value; markDirty(); });
+        return input;
+      }
+      function fld(labelText, inputEl) { return h("div", { class: "fld" }, h("label", { text: labelText }), inputEl); }
+      function textFld(obj, key, label) { return fld(label, bindText(obj, key, h("input", { type: "text" }))); }
+      function areaFld(obj, key, label, placeholder = "") { return fld(label, bindText(obj, key, h("textarea", { placeholder }))); }
+      function selectFld(obj, key, label, options) {
+        const sel = h("select", {}, h("option", { value: "", text: "— Select —" }), ...options.map(o => h("option", { value: o, text: o })));
+        sel.value = obj[key] || "";
+        sel.addEventListener("change", () => { obj[key] = sel.value; markDirty(); });
+        return fld(label, sel);
+      }
+      function checkPill(obj, key, label) {
+        const pill = h("span", { class: "pill" + (obj[key] ? " on" : "") }, h("span", { class: "tick", text: "✓" }), label);
+        pill.addEventListener("click", () => { obj[key] = !obj[key]; pill.classList.toggle("on", obj[key]); markDirty(); });
+        return pill;
+      }
+      function removeBtn(onRemove) { return h("button", { class: "hbtn danger rep-remove", type: "button", title: "Remove", onclick: onRemove }, "✕"); }
+      function renderRepeater(container, arr, makeBlank, rowRender, addLabel, emptyLabel) {
+        function rebuild() {
+          container.innerHTML = "";
+          if (!arr.length) container.appendChild(h("div", { class: "rep-empty", text: emptyLabel }));
+          arr.forEach((item, i) => {
+            container.appendChild(rowRender(item, i, () => { arr.splice(i, 1); markDirty(); rebuild(); }));
+          });
+          container.appendChild(h("button", { class: "hbtn", type: "button", onclick: () => { arr.push(makeBlank()); markDirty(); rebuild(); } }, "＋ " + addLabel));
+        }
+        rebuild();
+      }
+
+      function render() {
+        const r = st.research;
+        const root = document.getElementById("hubResearchRoot");
+        if (!root) return;
+        root.innerHTML = "";
+        const left = h("div", {});
+        const right = h("div", {});
+
+        left.appendChild(h("div", { class: "card" }, h("h5", { text: "✓ Research Checklist" }),
+          h("div", { class: "pill-row" }, ...CHECKLIST.map(([k, label]) => checkPill(r.checklist, k, label)))));
+        left.appendChild(h("div", { class: "card" }, h("h5", { text: "✎ Summary / Fact Pattern" }),
+          bindText(r, "rs_summary", Object.assign(h("textarea", { placeholder: "Deaths, vesting, suits, key facts…", style: "min-height:120px" }), {}))));
+        left.appendChild(h("div", { class: "card" }, h("h5", { text: "? Open Questions / Blockers" }),
+          areaFld(r, "rs_blockers", "Open questions / blockers for reviewer"),
+          h("div", { class: "grid2" },
+            selectFld(r, "rs_needsreview", "Needs human review?", ["No", "Yes"]),
+            selectFld(r, "rs_confidence", "Research confidence", ["High", "Medium", "Low"]))));
+        left.appendChild(h("div", { class: "card" }, h("h5", { text: "⚑ Deed / Closing Strategy" }),
+          areaFld(r, "act_strategy", "Strategy", "Target path (AOH, probate, quiet title…), acquisition order, risks")));
+
+        const chainCard = h("div", { class: "card" });
+        chainCard.appendChild(h("h5", { text: "⛓ Title Chain of Events" }));
+        chainCard.appendChild(h("div", { class: "grid3" },
+          selectFld(r, "rs_propchar", "Community or Separate?", ["Community", "Separate", "Unknown"]),
+          selectFld(r, "rs_married", "Married at purchase?", ["Yes", "No", "Unknown"]),
+          selectFld(r, "rs_chainstatus", "Title chain status", ["Clean", "Gap", "Break", "Needs curative work"])));
+        chainCard.appendChild(h("div", { class: "grid2" },
+          selectFld(r, "rs_rp", "RP number found?", ["Yes", "No"]),
+          textFld(r, "rs_rpdate", "RP date")));
+        const chainWrap = h("div", { class: "chain" });
+        chainCard.appendChild(chainWrap);
+        renderRepeater(chainWrap, r.chainEvents,
+          () => ({ date: "", type: "", event: "", desc: "", ref: "", link: "" }),
+          (ev, i, onRemove) => {
+            const row = h("div", { class: "rep-row chev" });
+            row.appendChild(removeBtn(onRemove));
+            row.appendChild(h("div", { class: "grid3" },
+              textFld(ev, "date", "Date"),
+              selectFld(ev, "type", "Type", CHAIN_TYPES),
+              textFld(ev, "ref", "Instrument / Vol / Page")));
+            row.appendChild(textFld(ev, "event", "Event"));
+            row.appendChild(h("div", { class: "grid2" },
+              areaFld(ev, "desc", "Description"),
+              textFld(ev, "link", "Document link")));
+            return row;
+          }, "Add event", "No chain events yet.");
+        chainCard.appendChild(areaFld(r, "rs_missing", "Missing / Needed Instruments"));
+        right.appendChild(chainCard);
+
+        root.appendChild(h("div", { class: "cards-2col" }, left, right));
+      }
+
+      async function loadAndRender() {
+        try {
+          const res = await fetch(BLOB_LOAD, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemId: st.itemId, taxAccount: st.taxAccount }) });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          let data = await res.json();
+          if (Array.isArray(data)) data = data[0] || {};
+          if (data && typeof data.research === "object" && data.research) {
+            st.research = Object.assign(defaultResearch(), data.research,
+              { checklist: Object.assign(defaultResearch().checklist, data.research.checklist || {}) });
+            if (!Array.isArray(st.research.chainEvents)) st.research.chainEvents = [];
+          }
+          setState(data && data.updatedAt ? "Saved ✓" : "New packet");
+        } catch (err) {
+          console.warn("[HubResearch] load unavailable, starting blank:", err.message);
+          setState("New packet");
+        }
+        st.loaded = true;
+        render();
+      }
+
+      return {
+        onRecordLoaded(recordPayload) {
+          if (st.inited) return;               // once per page load
+          const ids = extractIdsFromUrl();
+          if (!ids.pulseId) return;
+          st.inited = true;
+          st.itemId = String(ids.pulseId);
+          st.taxAccount = String(recordPayload.tax_account ?? "").trim();
+          loadAndRender();
+        }
+      };
+    })();
   </script>
 </body>
 </html>
