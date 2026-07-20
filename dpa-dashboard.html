@@ -515,6 +515,7 @@
           relation: c.relationship || "",
           ownershipPercent: String(c.ownershipPercent ?? c.ownership_percent ?? "").replace("%", "").trim(),
           phone: c.phone || c.phone1 || "",
+          skiptrace: typeof c.phones === "string" ? c.phones : "",
           contactStatus: (c.leadStatus && c.leadStatus.text) || c.contactStatus || "",
           contactRole: c.contactRole || c.owner_status || "",
           _dirty: false, _new: false
@@ -991,7 +992,7 @@
     }
 
     function heirBlank() {
-      return { subitemId: "", name: "", relation: "", ownershipPercent: "", phone: "", contactStatus: "", contactRole: "", _dirty: true, _new: true };
+      return { subitemId: "", name: "", relation: "", ownershipPercent: "", phone: "", skiptrace: "", contactStatus: "", contactRole: "", _dirty: true, _new: true };
     }
 
     function renderHeirs() {
@@ -1005,13 +1006,16 @@
         saveBtn));
 
       const table = el("table", { class: "heirs" });
+      const showSkiptrace = heirSubitemBoard() === "7886033852";
       table.appendChild(el("thead", {}, el("tr", {},
         el("th", { text: "Name" }), el("th", { text: "Relation" }), el("th", { text: "Ownership %" }),
-        el("th", { text: "Phone" }), el("th", { text: "Contact Status" }), el("th", { text: "Contact Role" }))));
+        el("th", { text: "Phone" }),
+        showSkiptrace ? el("th", { text: "Skiptraced Numbers" }) : null,
+        el("th", { text: "Contact Status" }), el("th", { text: "Contact Role" }))));
       const tbody = el("tbody", {});
 
       if (!state.heirs.length) {
-        tbody.appendChild(el("tr", {}, el("td", { colspan: "6", style: "color:#94a3b8;font-size:12.5px;padding:10px 8px", text: "No heir subitems yet — add one, or sync from research." })));
+        tbody.appendChild(el("tr", {}, el("td", { colspan: showSkiptrace ? "7" : "6", style: "color:#94a3b8;font-size:12.5px;padding:10px 8px", text: "No heir subitems yet — add one, or sync from research." })));
       }
       state.heirs.forEach(h => {
         const tr = el("tr", { class: h._new ? "heir-new" : "" });
@@ -1030,8 +1034,12 @@
         };
         tr.appendChild(cell(bind("name", el("input", { type: "text", placeholder: "Full name" }))));
         tr.appendChild(cell(bind("relation", el("input", { type: "text", placeholder: "daughter, nephew…" }))));
-        tr.appendChild(cell(bind("ownershipPercent", el("input", { type: "text", placeholder: "33.3" }))));
+        tr.appendChild(cell(bind("ownershipPercent", el("input", { type: "text", placeholder: "%" }))));
         tr.appendChild(cell(bind("phone", el("input", { type: "tel", placeholder: "(713) 555-0000" }))));
+        if (showSkiptrace) {
+          const ta = el("textarea", { placeholder: "(713) 555-0101 (CT) (M) — one number per line", rows: "2", style: "min-width:210px; resize:vertical; font-size:12px; line-height:1.35;" });
+          tr.appendChild(cell(bind("skiptrace", ta)));
+        }
         tr.appendChild(cell(selectOf("contactStatus", HEIR_STATUS_OPTIONS)));
         tr.appendChild(cell(selectOf("contactRole", HEIR_ROLE_OPTIONS)));
         tbody.appendChild(tr);
@@ -1059,6 +1067,7 @@
               relation: h.relation || "",
               ownershipPercent: h.ownershipPercent || "",
               phone: h.phone || "",
+              skiptrace: h.skiptrace !== undefined ? h.skiptrace : undefined,
               contactStatus: h.contactStatus || "",
               contactRole: h.contactRole || ""
             }))

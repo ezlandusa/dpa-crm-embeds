@@ -939,6 +939,12 @@
     .hub-root .chain .chev { position: relative; margin-bottom: 12px; }
     .hub-root .chain .chev::before { content: ""; position: absolute; left: -22px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: #b7892b; }
 
+    /* ---------- COLLAPSIBLE SECTIONS (less scrolling — state remembered) ---------- */
+    .section-head { cursor: pointer; user-select: none; }
+    .sec-chev { display: inline-block; margin-right: 7px; font-size: 11px; color: #9ca3af; transition: transform .15s ease; transform: rotate(90deg); }
+    .section.collapsed .sec-chev { transform: rotate(0deg); }
+    .section.collapsed > *:not(.section-head) { display: none; }
+
     /* ---------- PHONE ROWS / INLINE HEIR EDITING ---------- */
     .phone-row{ display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap; }
     .phone-link{ font-weight:500; color:#0176d3; text-decoration:none; font-size:14px; white-space:nowrap; }
@@ -3348,6 +3354,33 @@
         }
       });
     });
+
+    // ── Collapsible sections — click a header to fold it; choice persists ──
+    (function initCollapsibleSections() {
+      const DEFAULT_COLLAPSED = new Set(["Deal Metrics", "Record Meta"]);
+      let store = {};
+      try { store = JSON.parse(localStorage.getItem("dpaSectionCollapse") || "{}"); } catch (e) {}
+      document.querySelectorAll(".tab-pane .section").forEach(sec => {
+        const head = sec.querySelector(".section-head");
+        const h3 = head && head.querySelector("h3");
+        if (!h3) return;
+        const title = h3.textContent.replace("✓", "").trim();
+        const chev = document.createElement("span");
+        chev.className = "sec-chev";
+        chev.textContent = "▶";
+        h3.insertBefore(chev, h3.firstChild);
+        const collapsed = (title in store) ? !!store[title] : DEFAULT_COLLAPSED.has(title);
+        sec.classList.toggle("collapsed", collapsed);
+        head.addEventListener("click", (e) => {
+          // don't fold when clicking interactive bits that live in the header
+          if (e.target.closest("button, select, input, a")) return;
+          const now = !sec.classList.contains("collapsed");
+          sec.classList.toggle("collapsed", now);
+          store[title] = now;
+          try { localStorage.setItem("dpaSectionCollapse", JSON.stringify(store)); } catch (e2) {}
+        });
+      });
+    })();
 
     // Click-to-open for Research links
     Array.from(document.querySelectorAll('.value-text.link')).forEach(node => {
