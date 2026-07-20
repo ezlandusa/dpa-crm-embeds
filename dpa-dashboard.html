@@ -285,7 +285,13 @@
     const BASE = "https://ezlandusa.github.io/dpa-crm-embeds";
     const CACHE_BUST = "v11";
     const TREE_ORIGIN = "https://propertyaidpartners.netlify.app";
-    const HEIR_SUBITEM_BOARD = "7886033852";
+    const HEIR_SUBITEM_BOARDS = {
+      "7886033430": "7886033852",   // Prospecting
+      "6464951893": "6464952207",   // Opportunities
+      "9593389151": "9593389436",   // Transaction Coordinating
+      "9587157658": "9587157810",   // Closed Deals
+    };
+    function heirSubitemBoard() { return HEIR_SUBITEM_BOARDS[state.boardId] || "7886033852"; }
 
     // n8n webhook contract. recordLoad already exists; the rest are the
     // Phase-1 routes (built in n8n to these exact paths).
@@ -541,6 +547,7 @@
     let treeReady = false;
     let treeSeeded = false;
     let pendingAohPull = false;
+    let pendingHeirPull = false;
 
     function ensureTreeFrame() {
       if (treeFrameRequested) return;
@@ -558,7 +565,7 @@
         treeSeeded = true;
         postToTree({ type: "pap-load", data: state.blob.treeV2 || null });
         document.getElementById("treeLoading").style.display = "none";
-        if (pendingAohPull) { pendingAohPull = false; postToTree({ type: "pap-pull" }); }
+        if (pendingAohPull || pendingHeirPull) { postToTree({ type: "pap-pull" }); }
       }
     }
     window.addEventListener("message", (e) => {
@@ -571,7 +578,13 @@
         state.blob.treeV2 = msg.data;
         markDirty();
       } else if (msg.type === "pap-aoh") {
-        applyAohFromTree(msg.data);
+        if (pendingHeirPull) {
+          pendingHeirPull = false;
+          applyHeirsFromTree(msg.data);
+        } else {
+          pendingAohPull = false;
+          applyAohFromTree(msg.data);
+        }
       }
     });
 
@@ -835,6 +848,57 @@
       root.appendChild(el("div", { style: "display:flex;justify-content:flex-end;gap:10px;margin:4px 0 20px" }, genBtn));
     }
 
+    // Phase-2 #1: pull the bloodline out of the family tree into the heir
+    // editor rows. Never auto-saves — the researcher reviews, then clicks
+    // "Save heirs", which pushes through the dedupe-safe subitem route.
+    function requestHeirsFromTree() {
+      if (!treeSeeded) {
+        pendingHeirPull = true;
+        ensureTreeFrame();
+        toast("Loading tree editor first — one moment…", "ok");
+        return;
+      }
+      pendingHeirPull = true;
+      postToTree({ type: "pap-pull" });
+    }
+
+    function applyHeirsFromTree(result) {
+      if (!result || typeof result !== "object") { toast("Tree returned no data.", "err"); return; }
+      const norm = (s) => String(s || "").trim().toLowerCase();
+      const have = new Set(state.heirs.map(h => norm(h.name)).filter(Boolean));
+      const relFor = (p, fallback) => {
+        const g = String(p.gender || "").toLowerCase();
+        if (fallback === "Child") return g.startsWith("m") ? "Son" : g.startsWith("f") ? "Daughter" : "Child";
+        return fallback;
+      };
+      let added = 0;
+      const pull = (arr, fallbackRel) => {
+        (Array.isArray(arr) ? arr : []).forEach(p => {
+          const name = String(p.name || "").trim();
+          if (!name || have.has(norm(name))) return;
+          have.add(norm(name));
+          state.heirs.push(Object.assign(heirBlank(), {
+            name,
+            relation: relFor(p, fallbackRel),
+            contactRole: String(p.living || "").toUpperCase() === "NO" ? "Deceased Heir" : "Likely Heir",
+            contactStatus: String(p.living || "").toUpperCase() === "NO" ? "" : "Research"
+          }));
+          added++;
+        });
+      };
+      pull(result.children, "Child");
+      pull(result.section5, "Grandchild");
+      pull(result.section6, "Great-grandchild");
+      if (added) {
+        state.heirsDirty = true;
+        renderHeirs();
+        moveHeirDock("heirSlotTree");
+        toast(`${added} heir${added > 1 ? "s" : ""} pulled from the tree — review, then "Save heirs".`, "ok");
+      } else {
+        toast("No new heirs found in the tree (all already listed).", "ok");
+      }
+    }
+
     function requestAohFromTree() {
       if (!treeSeeded) {
         pendingAohPull = true;
@@ -936,6 +1000,7 @@
       heirDock.appendChild(el("h5", {},
         "👥 Heir Subitems",
         el("span", { class: "spacer" }),
+        el("button", { class: "btn sm", type: "button", onclick: requestHeirsFromTree }, "⇄ Sync from tree"),
         el("button", { class: "btn sm", type: "button", onclick: () => { state.heirs.push(heirBlank()); state.heirsDirty = true; renderHeirs(); } }, "＋ Add heir"),
         saveBtn));
 
@@ -974,7 +1039,7 @@
       table.appendChild(tbody);
       heirDock.appendChild(el("div", { class: "heir-table-wrap" }, table));
       heirDock.appendChild(el("div", { class: "heir-foot" },
-        el("span", { class: "note", text: "Saves to subitem board " + HEIR_SUBITEM_BOARD + " through n8n — existing heirs are matched by name (no duplicates)." })));
+        el("span", { class: "note", text: "Saves to subitem board " + heirSubitemBoard() + " through n8n — existing heirs are matched by name (no duplicates)." })));
     }
 
     async function saveHeirs() {
@@ -987,7 +1052,7 @@
           body: JSON.stringify({
             boardId: state.boardId,
             parentItemId: state.itemId,
-            subitemBoardId: HEIR_SUBITEM_BOARD,
+            subitemBoardId: heirSubitemBoard(),
             heirs: dirty.map(h => ({
               subitemId: h.subitemId || null,
               name: String(h.name || "").trim(),
