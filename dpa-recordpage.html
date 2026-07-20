@@ -907,7 +907,8 @@
       color: #dc2626;
     }
 
-    .field[data-field="title_chain_summary"] .value-text { white-space: pre-wrap; }
+    .field[data-field="title_chain_summary"] .value-text,
+    .field[data-field="lien_types"] .value-text { white-space: pre-wrap; }
 
     /* ---------- HUB RESEARCH SECTION (7 · Checklist, Strategy & Title Chain) ---------- */
     .hub-root .cards-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
@@ -1847,6 +1848,18 @@
                       </span>
                     </div>
                   </div>
+                  <div class="field" data-field="probate_county">
+                    <div class="label">Probate County</div>
+                    <div class="value">
+                      <span class="value-text" data-editable="true">—</span>
+                      <span class="edit" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
                   <div class="field" data-field="probate_case">
                     <div class="label">Probate Case #</div>
                     <div class="value">
@@ -2715,7 +2728,6 @@
       "rp_found": ["Yes", "No"],
       "aoh_on_file": ["Yes", "No"],
       "aj_found": ["Yes", "No", "N/A"],
-      "lien_types": ["IRS", "Child Support", "MERP", "HOA", "Mortgage", "Other"],
       "death_indexing": ["Yes", "No"],
       "owns_other_property": ["Yes", "No", "Unknown"],
       "death_sources": ["0", "1", "2+"],
@@ -2748,7 +2760,7 @@
 
     // Fields backed by Monday long-text columns — edited with a textarea
     // (multi-line; Enter inserts a newline, blur commits)
-    const LONG_TEXT_FIELDS = new Set(["title_chain_summary", "stalled_reason"]);
+    const LONG_TEXT_FIELDS = new Set(["title_chain_summary", "stalled_reason", "lien_types"]);
 
     // Per-board column ID maps — data-field → Monday.com column ID
     // Each board has different column IDs for the same logical fields
@@ -2766,7 +2778,8 @@
         "title_chain_summary": "long_text_mm5ehp1v",
         "aoh_on_file":        "color_mm5embe6",
         "aj_found":           "color_mm5ekwj1",
-        "lien_types":         "dropdown_mm5ewcjn",
+        "lien_types":         "long_text_mm5etn06",
+        "probate_county":    "text_mm5ezwck",
         "total_liens":        "numeric_mm5efhz",
         "death_indexing":     "color_mm5efrbr",
         "owns_other_property": "color_mm5etzt",
@@ -2831,7 +2844,8 @@
         "title_chain_summary": "long_text_mm5eh9nz",
         "aoh_on_file":        "color_mm5e3dmw",
         "aj_found":           "color_mm5exy7d",
-        "lien_types":         "dropdown_mm5efdb4",
+        "lien_types":         "long_text_mm5ec9x8",
+        "probate_county":    "text_mm5e5xw",
         "total_liens":        "numeric_mm5e3t6b",
         "death_indexing":     "color_mm5e96wa",
         "owns_other_property": "color_mm5ep0qc",
@@ -2895,7 +2909,8 @@
         "title_chain_summary": "long_text_mm5ezph2",
         "aoh_on_file":        "color_mm5e598h",
         "aj_found":           "color_mm5e3zrq",
-        "lien_types":         "dropdown_mm5eeej",
+        "lien_types":         "long_text_mm5eay7e",
+        "probate_county":    "text_mm5e62h1",
         "total_liens":        "numeric_mm5e40df",
         "death_indexing":     "color_mm5ek6vz",
         "owns_other_property": "color_mm5e70fs",
@@ -2959,7 +2974,8 @@
         "title_chain_summary": "long_text_mm5etaht",
         "aoh_on_file":        "color_mm5ecswn",
         "aj_found":           "color_mm5ept0",
-        "lien_types":         "dropdown_mm5ev7e9",
+        "lien_types":         "long_text_mm5e2shk",
+        "probate_county":    "text_mm5efwz8",
         "total_liens":        "numeric_mm5egetn",
         "death_indexing":     "color_mm5egsdd",
         "owns_other_property": "color_mm5ertzk",
@@ -3127,7 +3143,7 @@
         const NUMERIC_FIELDS = {};
         // Fields that should render as multi-select (checkbox list). These map
         // to Monday dropdown-type columns, which accept {labels:[...]} on save.
-        const MULTI_SELECT_FIELDS = new Set(["title_issue", "lien_types"]);
+        const MULTI_SELECT_FIELDS = new Set(["title_issue"]);
 
         if (DATE_FIELDS.has(fieldKey)) {
           // Real date picker — value is always YYYY-MM-DD, which is the only
