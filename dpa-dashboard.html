@@ -240,7 +240,6 @@
     <!-- Main tabs -->
     <div class="maintabs" role="tablist" aria-label="Dashboard sections">
       <button class="maintab" role="tab" id="mtab-deal" aria-selected="true" aria-controls="pane-deal" type="button">Deal Information</button>
-      <button class="maintab" role="tab" id="mtab-research" aria-selected="false" aria-controls="pane-research" type="button">Research<span class="new-badge">NEW</span></button>
       <button class="maintab" role="tab" id="mtab-tree" aria-selected="false" aria-controls="pane-tree" type="button">Family Tree<span class="new-badge">NEW</span></button>
       <button class="maintab" role="tab" id="mtab-aoh" aria-selected="false" aria-controls="pane-aoh" type="button">AOH<span class="new-badge">NEW</span></button>
       <div class="save-indicator" id="saveIndicator"><span class="dot"></span><span class="lbl">—</span></div>
@@ -257,11 +256,6 @@
         </div>
       </div>
       <div class="pane-inner" id="heirSlotDeal"></div>
-    </div>
-
-    <!-- RESEARCH -->
-    <div class="pane" id="pane-research" role="tabpanel" aria-labelledby="mtab-research">
-      <div class="pane-inner" id="researchRoot"></div>
     </div>
 
     <!-- FAMILY TREE -->
@@ -289,7 +283,7 @@
      *  CONFIG
      * ================================================================ */
     const BASE = "https://ezlandusa.github.io/dpa-crm-embeds";
-    const CACHE_BUST = "v10";
+    const CACHE_BUST = "v11";
     const TREE_ORIGIN = "https://propertyaidpartners.netlify.app";
     const HEIR_SUBITEM_BOARD = "7886033852";
 
@@ -425,11 +419,12 @@
     }
 
     function blobPayload() {
+      // research is intentionally ABSENT: the record page's section 7 owns it,
+      // and the blob-save webhook merges partial payloads server-side.
       return {
         itemId: state.itemId,
         taxAccount: state.taxAccount || "",
         treeV2: state.blob.treeV2,
-        research: state.blob.research,
         aoh: state.blob.aoh,
         updatedAt: new Date().toISOString()
       };
@@ -527,7 +522,7 @@
     /* ================================================================
      *  TABS
      * ================================================================ */
-    const PANES = { "mtab-deal": "pane-deal", "mtab-research": "pane-research", "mtab-tree": "pane-tree", "mtab-aoh": "pane-aoh" };
+    const PANES = { "mtab-deal": "pane-deal", "mtab-tree": "pane-tree", "mtab-aoh": "pane-aoh" };
     document.querySelectorAll(".maintab").forEach(tab => {
       tab.addEventListener("click", () => activateTab(tab.id));
     });
@@ -654,69 +649,6 @@
       return el("div", {}, radios, condWrap);
     }
 
-    /* ================================================================
-     *  RESEARCH TAB
-     * ================================================================ */
-    function renderResearch() {
-      const r = state.blob.research;
-      const root = document.getElementById("researchRoot");
-      root.innerHTML = "";
-
-      const left = el("div", {});
-      const right = el("div", {});
-
-      // Checklist
-      const pillRow = el("div", { class: "pill-row" }, ...CHECKLIST.map(([k, label]) => checkPill(r.checklist, k, label)));
-      left.appendChild(el("div", { class: "card" }, el("h5", { text: "✓ Research Checklist" }), pillRow));
-
-      // Summary / fact pattern
-      left.appendChild(el("div", { class: "card" }, el("h5", { text: "✎ Summary / Fact Pattern" }),
-        bindText(r, "rs_summary", Object.assign(el("textarea", { placeholder: "Deaths, vesting, suits, key facts…", style: "min-height:120px" }), {}))));
-
-      // Open questions / blockers + review flags
-      const qCard = el("div", { class: "card" }, el("h5", { text: "? Open Questions / Blockers" }),
-        areaFld(r, "rs_blockers", "Open questions / blockers for reviewer"),
-        el("div", { class: "grid2" },
-          selectFld(r, "rs_needsreview", "Needs human review?", ["No", "Yes"]),
-          selectFld(r, "rs_confidence", "Research confidence", ["High", "Medium", "Low"])));
-      left.appendChild(qCard);
-
-      // Deed / closing strategy
-      left.appendChild(el("div", { class: "card" }, el("h5", { text: "⚑ Deed / Closing Strategy" }),
-        areaFld(r, "act_strategy", "Strategy", "Target path (AOH, probate, quiet title…), acquisition order, risks")));
-
-      // Title chain
-      const chainCard = el("div", { class: "card" });
-      chainCard.appendChild(el("h5", { text: "⛓ Title Chain of Events" }));
-      chainCard.appendChild(el("div", { class: "grid3" },
-        selectFld(r, "rs_propchar", "Community or Separate?", ["Community", "Separate", "Unknown"]),
-        selectFld(r, "rs_married", "Married at purchase?", ["Yes", "No", "Unknown"]),
-        selectFld(r, "rs_chainstatus", "Title chain status", ["Clean", "Gap", "Break", "Needs curative work"])));
-      chainCard.appendChild(el("div", { class: "grid2" },
-        selectFld(r, "rs_rp", "RP number found?", ["Yes", "No"]),
-        textFld(r, "rs_rpdate", "RP date")));
-      const chainWrap = el("div", { class: "chain" });
-      chainCard.appendChild(chainWrap);
-      renderRepeater(chainWrap, r.chainEvents,
-        () => ({ date: "", type: "", event: "", desc: "", ref: "", link: "" }),
-        (ev, i, onRemove) => {
-          const row = el("div", { class: "rep-row chev" });
-          row.appendChild(removeBtn(onRemove));
-          row.appendChild(el("div", { class: "grid3" },
-            textFld(ev, "date", "Date"),
-            selectFld(ev, "type", "Type", CHAIN_TYPES),
-            textFld(ev, "ref", "Instrument / Vol / Page")));
-          row.appendChild(textFld(ev, "event", "Event"));
-          row.appendChild(el("div", { class: "grid2" },
-            areaFld(ev, "desc", "Description"),
-            textFld(ev, "link", "Document link")));
-          return row;
-        }, "Add event", "No chain events yet.");
-      chainCard.appendChild(areaFld(r, "rs_missing", "Missing / Needed Instruments"));
-      right.appendChild(chainCard);
-
-      root.appendChild(el("div", { class: "cards-2col" }, left, right));
-    }
 
     /* ================================================================
      *  AOH TAB
@@ -1110,7 +1042,6 @@
       await loadRecordContext();
       renderHeirs();
       await loadBlob();
-      renderResearch();
       renderAoh();
       seedTreeIfReady();
     }
